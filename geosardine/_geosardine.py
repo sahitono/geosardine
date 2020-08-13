@@ -1,7 +1,7 @@
 import warnings
 from collections import OrderedDict
 from math import ceil, floor
-from typing import Dict, Tuple, List, Union
+from typing import Dict, Tuple, List, Union, Iterable
 
 import numpy as np
 import fiona
@@ -100,6 +100,17 @@ def drape2raster(
             warnings.warn(f"Point is out of bound, returning no data: {no_data}")
             draped_z = no_data
     return x, y, draped_z
+
+
+def drape_shapes(
+    features: Union[Iterable, fiona.Collection],
+    dsm_array: np.ndarray,
+    affine: Affine,
+    mode: str = "exact",
+    no_data: Union[float, int] = -32767,
+):
+    for feature in features:
+        geometry = feature["geometry"]
 
 
 def spatial_join(target: fiona.Collection, join: fiona.Collection) -> List[Dict]:

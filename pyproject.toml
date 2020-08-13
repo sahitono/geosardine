@@ -1,12 +1,13 @@
 [tool.poetry]
 name = "geosardine"
-version = "0.1.1"
+version = "0.1.2"
+license = "MIT"
 description = "Spatial operations extend fiona and rasterio"
 authors = ["Sahit Tuntas Sadono <26474008+sahitono@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-numpy = "^1.19.1"
+python = "^3.6"
+numpy = "^1.18"
 gdal = {path = "../../.pypkg/GDAL-3.0.4-cp38-cp38-win_amd64.whl"}
 rasterio = {path = "../../.pypkg/rasterio-1.1.4-cp38-cp38-win_amd64.whl"}
 fiona = {path = "../../.pypkg/Fiona-1.8.13-cp38-cp38-win_amd64.whl"}
