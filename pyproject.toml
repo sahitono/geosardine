@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "sardine"
-version = "0.1.0"
+name = "geosardine"
+version = "0.1.1"
 description = "Spatial operations extend fiona and rasterio"
 authors = ["Sahit Tuntas Sadono <26474008+sahitono@users.noreply.github.com>"]
 
@@ -11,7 +11,7 @@ gdal = {path = "../../.pypkg/GDAL-3.0.4-cp38-cp38-win_amd64.whl"}
 rasterio = {path = "../../.pypkg/rasterio-1.1.4-cp38-cp38-win_amd64.whl"}
 fiona = {path = "../../.pypkg/Fiona-1.8.13-cp38-cp38-win_amd64.whl"}
 affine = "^2.3.0"
-shapely = "^1.7.0"
+shapely = "^1.6.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
