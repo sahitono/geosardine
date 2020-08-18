@@ -1,9 +1,19 @@
 [tool.poetry]
 name = "geosardine"
-version = "0.1.2"
-license = "MIT"
+version = "0.2.2-alpha"
+license = "BSD"
 description = "Spatial operations extend fiona and rasterio"
 authors = ["Sahit Tuntas Sadono <26474008+sahitono@users.noreply.github.com>"]
+homepage = "https://github.com/sahitono/geosardine"
+repository = "https://github.com/sahitono/geosardine"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: GIS",
+    "License :: OSI Approved :: BSD License",
+    "Typing :: Typed"
+]
 
 [tool.poetry.dependencies]
 python = "^3.6"
@@ -13,6 +23,7 @@ rasterio = {path = "../../.pypkg/rasterio-1.1.4-cp38-cp38-win_amd64.whl"}
 fiona = {path = "../../.pypkg/Fiona-1.8.13-cp38-cp38-win_amd64.whl"}
 affine = "^2.3.0"
 shapely = "^1.6.4"
+tqdm = "^4.48.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

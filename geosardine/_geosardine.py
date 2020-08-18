@@ -1,28 +1,31 @@
 import warnings
 from collections import OrderedDict
 from math import ceil, floor
-from typing import Dict, Tuple, List, Union, Iterable
+from typing import Dict, Generator, Tuple, List, Union, Iterable
 
 import numpy as np
 import fiona
+import rasterio
 from affine import Affine
-from shapely.geometry import shape, Polygon
+from shapely.geometry import shape, Polygon, LineString
 
 
 def xy2rowcol(
-    xy: Union[Tuple[float, float], List[float]], affine: Affine, mode: str = "exact",
+    xy: Union[Tuple[float, float], List[float]],
+    affine: Affine,
+    interpolate: bool = False,
 ) -> Union[Tuple[int, int], Tuple[float, float]]:
     """
     Convert geographic coordinate to image coordinate
     :param xy:
     :param affine:
-    :param mode:
+    :param interpolate:
     :return:
     """
     col, row = ~affine * xy
-    if mode == "exact":
+    if not interpolate:
         col, row = round(col), round(row)
-    return col, row
+    return row, col
 
 
 def rowcol2xy(
@@ -34,7 +37,8 @@ def rowcol2xy(
     :param affine:
     :return:
     """
-    return affine * rowcol
+    row, col = rowcol
+    return affine * (col, row)
 
 
 def _d2r_interpolate(
@@ -66,7 +70,7 @@ def _d2r_interpolate(
         )
 
         draped_z = sum(z_list) / len(z_list)
-    except IndentationError:
+    except IndexError:
         warnings.warn(f"Point is out of bound, returning no data: {no_data}")
         draped_z = no_data
 
@@ -77,7 +81,7 @@ def drape2raster(
     xy: List[float],
     dsm_array: np.ndarray,
     affine: Affine,
-    mode: str = "exact",
+    interpolate: bool = False,
     no_data: Union[float, int] = -32767,
 ) -> Tuple[float, float, float]:
     """
@@ -85,35 +89,118 @@ def drape2raster(
     :param xy: 2D coordinate [x, y]
     :param dsm_array: dsm as numpy array
     :param affine: affine parameter from rasterio.transform
-    :param mode: "exact" or "interpolate"
+    :param interpolate: interpolate or exact value
     :param no_data: no data value
     :return: 3D coordinate
     """
     x, y = xy
-    row, col = xy2rowcol(xy, affine, mode)
-    if mode == "interpolate":
+    row, col = xy2rowcol(xy, affine, interpolate)
+    if interpolate:
         draped_z = _d2r_interpolate(row, col, dsm_array, no_data)
     else:
         try:
             draped_z = dsm_array[row, col]
-        except IndentationError:
+        except IndexError:
             warnings.warn(f"Point is out of bound, returning no data: {no_data}")
             draped_z = no_data
     return x, y, draped_z
 
 
-def drape_shapes(
-    features: Union[Iterable, fiona.Collection],
+def drape_coordinates(
+    coordinates: Union[List[List[float]], Iterable],
     dsm_array: np.ndarray,
     affine: Affine,
-    mode: str = "exact",
+    interpolate: bool = False,
     no_data: Union[float, int] = -32767,
-):
-    for feature in features:
-        geometry = feature["geometry"]
+) -> Generator[List[float], None, None]:
+    for xy in coordinates:
+        yield drape2raster(xy, dsm_array, affine, interpolate, no_data)
 
 
-def spatial_join(target: fiona.Collection, join: fiona.Collection) -> List[Dict]:
+def drape_shapely(
+    geometry: Union[Polygon, LineString],
+    raster: rasterio.io.DatasetReader,
+    interpolate: bool = False,
+) -> Union[Polygon, LineString]:
+    """
+    Drape with shapely geometry as input
+    :param geometry:
+    :param raster: rasterio dataset reader
+    :param interpolate:
+    :return:
+    """
+    dsm_array = raster.read(1)
+    affine = raster.transform
+    no_data = raster.nodatavals
+    if geometry.type == "Polygon":
+        draped_exterior = list(
+            drape_coordinates(
+                geometry.exterior.coords, dsm_array, affine, interpolate, no_data
+            )
+        )
+        draped_interiors = [
+            list(
+                drape_coordinates(
+                    interior.coords, dsm_array, affine, interpolate, no_data
+                )
+            )
+            for interior in geometry.interiors
+        ]
+
+        return Polygon(draped_exterior, draped_interiors)
+    elif geometry.type == "LineString":
+        return LineString(
+            list(
+                drape_coordinates(
+                    geometry.coords, dsm_array, affine, interpolate, no_data
+                )
+            )
+        )
+    else:
+        raise ValueError("Unsupported geometry type")
+
+
+def drape_geojson(
+    features: Union[Iterable[Dict], fiona.Collection],
+    raster: rasterio.io.DatasetReader,
+    interpolate: bool = False,
+) -> Generator[Dict, None, None]:
+    """
+    Drape with geojson as input, fiona uses geojson as interface.
+    :param features: geojson
+    :param raster: rasterio dataset reader
+    :param interpolate:
+    :return:
+    """
+    dsm_array = raster.read(1)
+    affine = raster.transform
+    no_data = raster.nodatavals
+    for i, feature in enumerate(features):
+        draped_feature = feature.copy()
+        geometry: Dict = feature["geometry"]
+        geom_type: str = geometry["type"]
+
+        draped_coordinates: Union[List[List[float]], List[List[List[float]]]] = []
+        if geom_type == "Polygon":
+            draped_coordinates = [
+                list(drape_coordinates(ring, dsm_array, affine, interpolate, no_data))
+                for ring in geometry
+            ]
+
+        elif geom_type == "LineString":
+            draped_coordinates = list(
+                drape_coordinates(geometry, dsm_array, affine, interpolate, no_data)
+            )
+        else:
+            raise ValueError("Unsupported geometry type")
+
+        draped_feature["geometry"]["coordinates"] = draped_coordinates
+        yield draped_feature
+
+
+def spatial_join(
+    target: fiona.Collection, join: fiona.Collection
+) -> Tuple[List[Dict], Dict]:
     """
     Join attribute from 2 vector by location.
     :param target: Vector target to be joined. [fiona.Collection]
@@ -152,4 +239,4 @@ def spatial_join(target: fiona.Collection, join: fiona.Collection) -> List[Dict]
         feature["properties"] = joined_prop
         joined_features.append(feature)
 
-    return joined_features
+    return joined_features, joined_schema
