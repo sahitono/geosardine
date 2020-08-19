@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "geosardine"
-version = "0.2.2-alpha"
+version = "0.3.0-alpha"
 license = "BSD"
 description = "Spatial operations extend fiona and rasterio"
 authors = ["Sahit Tuntas Sadono <26474008+sahitono@users.noreply.github.com>"]
@@ -8,7 +8,7 @@ homepage = "https://github.com/sahitono/geosardine"
 repository = "https://github.com/sahitono/geosardine"
 readme = "README.md"
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: GIS",
     "License :: OSI Approved :: BSD License",
@@ -27,6 +27,9 @@ tqdm = "^4.48.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+
+[tool.poetry.scripts]
+dine = 'geosardine.__main__:main'
 
 [build-system]
 requires = ["poetry>=0.12"]

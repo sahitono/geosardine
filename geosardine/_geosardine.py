@@ -24,35 +24,37 @@ def xy2rowcol(
     """
     col, row = ~affine * xy
     if not interpolate:
-        col, row = round(col), round(row)
+        col, row = int(col), int(row)
     return row, col
 
 
 def rowcol2xy(
-    rowcol: Union[Tuple[int, int], List[int]], affine: Affine
+    row_col: Union[Tuple[int, int], List[int]], affine: Affine
 ) -> Tuple[float, float]:
     """
     Convert image coordinate to geographic coordinate
-    :param rowcol:
+    :param row_col:
     :param affine:
     :return:
     """
-    row, col = rowcol
+    row, col = row_col
     return affine * (col, row)
 
 
 def _d2r_interpolate(
-    row: float, col: float, dsm_array: np.ndarray, no_data: Union[float, int]
+    row_col: Union[Tuple[float, float], List[float]],
+    dsm_array: np.ndarray,
+    no_data: Union[float, int],
 ) -> float:
     """
     Find interpolated z value on raster.
     Z is average of 4 avalue ignoring distance to each coordinate.
-    :param row:
-    :param col:
+    :param row_col:
     :param dsm_array:
     :param no_data:
     :return: Interpolated Z
     """
+    row, col = row_col
     try:
         max_col, max_row = floor(col), floor(row)
         min_col, min_row = ceil(col), ceil(row)
@@ -96,7 +98,7 @@ def drape2raster(
     x, y = xy
     row, col = xy2rowcol(xy, affine, interpolate)
     if interpolate:
-        draped_z = _d2r_interpolate(row, col, dsm_array, no_data)
+        draped_z = _d2r_interpolate((row, col), dsm_array, no_data)
     else:
         try:
             draped_z = dsm_array[row, col]
