@@ -17,10 +17,15 @@ def xy2rowcol(
 ) -> Union[Tuple[int, int], Tuple[float, float]]:
     """
     Convert geographic coordinate to image coordinate
-    :param xy:
-    :param affine:
-    :param interpolate:
-    :return:
+    Parameters
+    ----------
+    xy
+    affine
+    interpolate
+
+    Returns
+    -------
+
     """
     col, row = ~affine * xy
     if not interpolate:
