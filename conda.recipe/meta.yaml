@@ -1,0 +1,58 @@
+{% set name = "geosardine" %}
+{% set version = "0.5.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 7840544f8db5e54328c6c478e6f4e1b006b964cf2b1b692a1af940d2df97e2cd
+
+build:
+  noarch: python
+  number: 0
+  entry_points:
+    - dine = geosardine.__main__:main
+#  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - python >=3.6,<4.0
+    - pip
+    - pytest-runner
+#    - poetry
+
+  run:
+    - affine >=2.3.0,<3.0.0
+    - click >=7.1.2,<8.0.0
+    - fiona >=1.8.13,<2.0.0
+    - gdal >=3.0.4,<4.0.0
+    - numba >=0.51.2,<0.52.0
+    - numpy >=1.18,<2.0
+    - python >=3.6,<4.0
+    - rasterio >=1.1.4,<2.0.0
+    - shapely >=1.6.4,<2.0.0
+    - tqdm
+
+
+test:
+  imports:
+    - geosardine
+    - geosardine.interpolate
+  commands:
+    - pip check
+    - dine --help
+  requires:
+    - pytest
+
+about:
+  home: https://github.com/sahitono/geosardine
+  summary: Spatial operations extend fiona and rasterio
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE.txt
+
+extra:
+  recipe-maintainers:
+    - sahitono

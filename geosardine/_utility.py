@@ -1,11 +1,11 @@
 import math
+from pathlib import Path
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 import numba
 import rasterio
 from affine import Affine
-from nptyping import NDArray
 from rasterio.crs import CRS
 
 
@@ -17,7 +17,7 @@ def calc_affine(coordinate_array: np.ndarray) -> Affine:
 
 
 def save_raster(
-    file_name: str,
+    file_name: Union[str, Path],
     value_array: np.ndarray,
     crs: Union[CRS, int],
     coordinate_array: Optional[np.ndarray] = None,
@@ -44,6 +44,7 @@ def save_raster(
         transform=affine,
     ) as raster:
         raster.write(value_array, 1)
+    print(f"{file_name} saved")
 
 
 @numba.njit()
@@ -160,7 +161,7 @@ def projected_distance(
     return math.sqrt((xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2)
 
 
-def calc_extent(points: NDArray[(Any, 2), float]) -> Tuple[float, float, float, float]:
+def calc_extent(points: np.ndarray) -> Tuple[float, float, float, float]:
     x_max, y_max = points[:, 0].max(), points[:, 1].max()
     x_min, y_min = points[:, 0].min(), points[:, 1].min()
     return x_min, y_min, x_max, y_max

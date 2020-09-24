@@ -1,12 +1,12 @@
 import os
 import warnings
 from functools import singledispatch
+from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 import fiona
 import numba
 import numpy as np
-from nptyping import NDArray
 from rasterio.crs import CRS
 
 from geosardine._utility import calc_extent, calc_distance
@@ -15,12 +15,12 @@ from geosardine.interpolate._utility import InterpolationResults
 
 @numba.njit(parallel=True)
 def _idw(
-    known_coordinates: NDArray[(Any, 2), float],
-    value: NDArray[(Any,), float],
-    unknown_coordinates: NDArray[(Any, 2), float],
+    known_coordinates: np.ndarray,
+    value: np.ndarray,
+    unknown_coordinates: np.ndarray,
     distance_function: Callable,
     power: Union[float, int] = 2,
-) -> Union[NDArray[(Any,), float], np.ndarray]:
+) -> np.ndarray:
     interpolated = np.zeros(unknown_coordinates.shape[0])
     for i in numba.prange(interpolated.shape[0]):
         distances = np.array(
@@ -89,15 +89,16 @@ def idw(
     return None
 
 
-@idw.register(np.ndarray)
+@idw.register
 def _idw_array(
-    points: Union[np.ndarray, NDArray[(Any, 2), float]],
-    value: Union[np.ndarray, NDArray[(Any,), Any]],
+    points: np.ndarray,
+    value: np.ndarray,
     spatial_res: Tuple[float, float],
     epsg: int = 4326,
     longlat_distance: str = "harvesine",
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
+    source: Optional[Union[str, Path]] = None,
 ) -> InterpolationResults:
 
     if extent is None:
@@ -136,7 +137,11 @@ def _idw_array(
     ).reshape(rows, columns)
 
     return InterpolationResults(
-        interpolated_value, interpolated_coordinate, crs, (x_min, y_min, x_max, y_max)
+        interpolated_value,
+        interpolated_coordinate,
+        crs,
+        (x_min, y_min, x_max, y_max),
+        source=source,
     )
 
 
@@ -171,4 +176,20 @@ def _idw_file(
             longlat_distance,
             extent,
             power,
+            source=file_name,
         )
+
+
+@idw.register
+def _idw_file_path(
+    file_name: Path,
+    spatial_res: Tuple[float, float],
+    epsg: Optional[int] = None,
+    column_name: Optional[str] = None,
+    longlat_distance: str = "harvesine",
+    extent: Optional[Tuple[float, float, float, float]] = None,
+    power: Union[float, int] = 2,
+):
+    return _idw_file(
+        file_name, spatial_res, epsg, column_name, longlat_distance, extent, power
+    )

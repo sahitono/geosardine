@@ -1,7 +1,7 @@
 import warnings
 from collections import OrderedDict
 from math import ceil, floor
-from typing import Dict, Generator, Tuple, List, Union, Iterable
+from typing import Callable, Dict, Generator, Tuple, List, Union, Iterable
 
 import numpy as np
 import fiona
@@ -14,6 +14,7 @@ def xy2rowcol(
     xy: Union[Tuple[float, float], List[float]],
     affine: Affine,
     interpolate: bool = False,
+    round_function: Callable = int,
 ) -> Union[Tuple[int, int], Tuple[float, float]]:
     """
     Convert geographic coordinate to image coordinate
@@ -29,7 +30,7 @@ def xy2rowcol(
     """
     col, row = ~affine * xy
     if not interpolate:
-        col, row = int(col), int(row)
+        col, row = round_function(col), round_function(row)
     return row, col
 
 

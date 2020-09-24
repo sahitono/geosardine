@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict
 
 import click
@@ -6,6 +7,7 @@ import rasterio
 from tqdm.autonotebook import tqdm
 
 from geosardine._geosardine import spatial_join, drape_geojson
+from geosardine.interpolate import idw
 
 
 @click.group()
@@ -26,10 +28,10 @@ def info():
 
 
 @main.command("join-spatial")
-@click.option("--target", help="vector file target")
-@click.option("--overlay", help="vector file which data will be joined")
+@click.argument("target", type=click.Path(exists=True))
+@click.argument("overlay", type=click.Path(exists=True))
 def join_spatial(target: str, join: str) -> None:
-    """Join attribute by location"""
+    """Join attribute to TARGET from OVERLAY's attribute by location"""
     with fiona.open(target) as target_file, fiona.open(join) as join_file:
         driver: str = target_file.driver
         crs: Dict = target_file.crs
@@ -45,11 +47,11 @@ def join_spatial(target: str, join: str) -> None:
 
 
 @main.command("drape")
-@click.option("--target", help="any OGR supported vector data")
-@click.option("--raster", help="any GDAL supported vector data")
+@click.argument("target", type=click.Path(exists=True))
+@click.argument("raster", type=click.Path(exists=True))
 def drape(target, raster):
     """
-    Drape vector to raster to obtain height value
+    Drape vector TARGET to RASTER to obtain height value
     """
     with fiona.open(target) as target_file, rasterio.open(raster) as raster_file:
         driver: str = target_file.driver
@@ -62,6 +64,22 @@ def drape(target, raster):
         for feature in tqdm(draped_features):
             out_file.write(feature)
         print("Done!")
+
+
+@main.command("idw")
+@click.argument("points", type=click.Path(exists=True))
+@click.option("--output", type=click.Path(), default=None, help="output location")
+@click.argument("resolution", type=float)
+@click.option("--column", type=str, default=None, help="column name of points")
+def idw_cli(points: Path, output, resolution, column):
+    """
+    Create raster from POINTS with defined RESOLUTION
+    by Inverse Distance Weighting interpolation
+    """
+    points = Path(points)
+    print("Running...")
+    interpolation = idw(points, (resolution, resolution), column_name=column)
+    interpolation.save(output)
 
 
 if __name__ == "__main__":
