@@ -55,7 +55,9 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
       
     - name: Code quality
-      run: python -m black . --check
+      run: |
+        pip install black
+        python -m black . --check
       
     - name: Test with pytest
       run: poetry run pytest --cov=./ --cov-report xml
