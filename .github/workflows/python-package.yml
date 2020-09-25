@@ -31,7 +31,7 @@ jobs:
       uses: dschep/install-poetry-action@v1.2
 
     - name: Update pip
-      uses: poetry run pip install --upgrade pip
+      run: poetry run pip install --upgrade pip
       
     - name: Cache Poetry virtualenv
       uses: actions/cache@v1
