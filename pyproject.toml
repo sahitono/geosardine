@@ -18,9 +18,9 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.6"
 numpy = "^1.18"
-gdal = ">=3.0.4"
-rasterio = ">=1.1.2"
-fiona = "^1.8.13"
+gdal = {path = "../../.pypkg/GDAL-3.1.2-cp38-cp38-win_amd64.whl"}
+rasterio = {path = "../../.pypkg/rasterio-1.1.5-cp38-cp38-win_amd64.whl"}
+fiona = {path = "../../.pypkg/Fiona-1.8.17-cp38-cp38-win_amd64.whl"}
 affine = "^2.3.0"
 shapely = ">=1.6.4"
 tqdm = "^4.48.2"
@@ -29,6 +29,8 @@ click = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+black = "^20.8b1"
+isort = "^5.5.3"
 
 [tool.poetry.scripts]
 dine = 'geosardine.__main__:main'

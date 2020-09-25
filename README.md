@@ -1,13 +1,16 @@
 # Geo-Sardine
 
-Collection of spatial operation which i occasionally use:
+Collection of spatial operation which i occasionally use written in python:
  - Interpolation with IDW (Inverse Distance Weighting) Shepard
  - Drape vector to raster
  - Spatial join between two vector
 
 ## Setup
-install it with pip
+install with pip
 ```pip install geosardine```
+
+or anaconda
+```conda install -c sahitono geosardine```
 
 ## How to use it
 
