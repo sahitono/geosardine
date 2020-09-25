@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.7, 3.8]
         os: [ubuntu-20.04]
         
     runs-on: ${{ matrix.os }}
@@ -30,7 +30,6 @@ jobs:
     - name: Install library
       run: |
         sudo apt install gdal-bin libgdal-dev
-        sudo pip3 install GDAL==$(gdal-config --version | awk -F'[.]' '{print $1"."$2}') --global-option=build_ext --global-option="-I/usr/include/gdal"
         
     - name: Install Poetry
       uses: dschep/install-poetry-action@v1.2
@@ -59,7 +58,7 @@ jobs:
       run: poetry run black . --check
       
     - name: Test with pytest
-      run: poetry run pytest
+      run: poetry run pytest --cov=./
       
     - name: Code coverage
       uses: codecov/codecov-action@v1
