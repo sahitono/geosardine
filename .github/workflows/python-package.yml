@@ -28,7 +28,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install library
-      run: sudo apt install gdal-bin libgdal
+      run: sudo apt install gdal-bin libgdal-dev
         
     - name: Install Poetry
       uses: dschep/install-poetry-action@v1.2
