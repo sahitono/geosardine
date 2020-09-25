@@ -1,13 +1,13 @@
 import warnings
 from collections import OrderedDict
 from math import ceil, floor
-from typing import Callable, Dict, Generator, Tuple, List, Union, Iterable
+from typing import Callable, Dict, Generator, Iterable, List, Tuple, Union
 
-import numpy as np
 import fiona
+import numpy as np
 import rasterio
 from affine import Affine
-from shapely.geometry import shape, Polygon, LineString
+from shapely.geometry import LineString, Polygon, shape
 
 
 def xy2rowcol(
@@ -217,7 +217,7 @@ def spatial_join(
     """
     try:
         joined_schema_prop = OrderedDict(
-            **target.schema["properties"], **join.schema["properties"],
+            **target.schema["properties"], **join.schema["properties"]
         )
     except TypeError:
         raise TypeError("There are column with same name. Please change it first.")
