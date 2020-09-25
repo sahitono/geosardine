@@ -58,7 +58,7 @@ jobs:
       run: poetry run black . --check
       
     - name: Test with pytest
-      run: poetry run pytest --cov=./
+      run: poetry run pytest --cov=./ --cov-report xml
       
     - name: Code coverage
       uses: codecov/codecov-action@v1
