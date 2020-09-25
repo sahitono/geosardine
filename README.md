@@ -1,4 +1,5 @@
 # Geo-Sardine
+![python package](https://github.com/sahitono/geosardine/workflows/python%20package/badge.svg)
 
 Collection of spatial operation which i occasionally use written in python:
  - Interpolation with IDW (Inverse Distance Weighting) Shepard
