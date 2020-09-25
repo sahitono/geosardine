@@ -126,7 +126,7 @@ description = "Fiona reads and writes spatial data files"
 name = "fiona"
 optional = false
 python-versions = "*"
-version = "1.8.17"
+version = "1.8.13"
 
 [package.dependencies]
 attrs = ">=17"
@@ -137,7 +137,7 @@ munch = "*"
 six = ">=1.7"
 
 [package.extras]
-all = ["pytest (>=3)", "boto3 (>=1.2.4)", "pytest-cov", "shapely", "mock"]
+all = ["pytest-cov", "boto3 (>=1.2.4)", "pytest (>=3)", "shapely", "mock"]
 calc = ["shapely"]
 s3 = ["boto3 (>=1.2.4)"]
 test = ["pytest (>=3)", "pytest-cov", "boto3 (>=1.2.4)", "mock"]
@@ -148,10 +148,7 @@ description = "GDAL: Geospatial Data Abstraction Library"
 name = "gdal"
 optional = false
 python-versions = "*"
-version = "3.1.3"
-
-[package.extras]
-numpy = ["numpy (>1.0.0)"]
+version = "3.0.4"
 
 [[package]]
 category = "dev"
@@ -280,18 +277,6 @@ dev = ["pre-commit", "tox"]
 
 [[package]]
 category = "dev"
-description = "A collection of scripts replace local packages with versions and vice versa"
-name = "poetry-dev"
-optional = false
-python-versions = ">=3.6,<4.0"
-version = "0.1.2"
-
-[package.dependencies]
-tomlkit = ">=0.7.0,<0.8.0"
-typer = ">=0.3.2,<0.4.0"
-
-[[package]]
-category = "dev"
 description = "library with cross-python path, ini-parsing, io, code, log facilities"
 name = "py"
 optional = false
@@ -338,7 +323,7 @@ description = "Fast and direct raster I/O for use with Numpy and SciPy"
 name = "rasterio"
 optional = false
 python-versions = "*"
-version = "1.1.6"
+version = "1.1.2"
 
 [package.dependencies]
 affine = "*"
@@ -350,12 +335,12 @@ numpy = "*"
 snuggs = ">=1.4.1"
 
 [package.extras]
-all = ["boto3 (>=1.2.4)", "sphinx", "pytest-cov (>=2.2.0)", "ghp-import", "packaging", "numpydoc", "ipython (>=2.0)", "sphinx-rtd-theme", "hypothesis", "matplotlib", "pytest (>=2.8.2)", "futures", "mock"]
+all = ["hypothesis", "numpydoc", "ipython (>=2.0)", "pytest (>=2.8.2)", "pytest-cov (>=2.2.0)", "ghp-import", "sphinx-rtd-theme", "sphinx", "boto3 (>=1.2.4)", "matplotlib", "packaging"]
 docs = ["ghp-import", "numpydoc", "sphinx", "sphinx-rtd-theme"]
 ipython = ["ipython (>=2.0)"]
 plot = ["matplotlib"]
 s3 = ["boto3 (>=1.2.4)"]
-test = ["pytest (>=2.8.2)", "pytest-cov (>=2.2.0)", "boto3 (>=1.2.4)", "packaging", "hypothesis", "futures", "mock"]
+test = ["pytest (>=2.8.2)", "pytest-cov (>=2.2.0)", "boto3 (>=1.2.4)", "packaging", "hypothesis"]
 
 [[package]]
 category = "dev"
@@ -410,14 +395,6 @@ python-versions = "*"
 version = "0.10.1"
 
 [[package]]
-category = "dev"
-description = "Style preserving TOML library"
-name = "tomlkit"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "0.7.0"
-
-[[package]]
 category = "main"
 description = "Fast, Extensible Progress Meter"
 name = "tqdm"
@@ -435,23 +412,6 @@ name = "typed-ast"
 optional = false
 python-versions = "*"
 version = "1.4.1"
-
-[[package]]
-category = "dev"
-description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
-name = "typer"
-optional = false
-python-versions = ">=3.6"
-version = "0.3.2"
-
-[package.dependencies]
-click = ">=7.1.1,<7.2.0"
-
-[package.extras]
-all = ["colorama (>=0.4.3,<0.5.0)", "shellingham (>=1.3.0,<2.0.0)"]
-dev = ["autoflake (>=1.3.1,<2.0.0)", "flake8 (>=3.8.3,<4.0.0)"]
-doc = ["mkdocs (>=1.1.2,<2.0.0)", "mkdocs-material (>=5.4.0,<6.0.0)", "markdown-include (>=0.5.1,<0.6.0)"]
-test = ["pytest-xdist (>=1.32.0,<2.0.0)", "pytest-sugar (>=0.9.4,<0.10.0)", "mypy (0.782)", "black (>=19.10b0,<20.0b0)", "isort (>=5.0.6,<6.0.0)", "shellingham (>=1.3.0,<2.0.0)", "pytest (>=4.4.0,<5.4.0)", "pytest-cov (>=2.10.0,<3.0.0)", "coverage (>=5.2,<6.0)"]
 
 [[package]]
 category = "dev"
@@ -483,7 +443,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pytest (>=3.5,<3.7.3 || >3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pytest-cov", "jaraco.test (>=3.2.0)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy"]
 
 [metadata]
-content-hash = "30aee6c33c383bbaf86781c6e1a166d29dd187c6f568a8b09925984bd6bdd7ef"
+content-hash = "747ac4ebd29e03e12dabb22862b7152b35b8dfc04b7dbe05ba8ff607a73679f8"
 lock-version = "1.0"
 python-versions = "^3.6"
 
@@ -529,19 +489,20 @@ dataclasses = [
     {file = "dataclasses-0.6.tar.gz", hash = "sha256:6988bd2b895eef432d562370bb707d540f32f7360ab13da45340101bc2307d84"},
 ]
 fiona = [
-    {file = "Fiona-1.8.17-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:2563d9a9f21390a7376556c82d9cef90a20a362949a9c7cb66f4ce63d90b66cd"},
-    {file = "Fiona-1.8.17-cp35-cp35m-macosx_10_9_intel.whl", hash = "sha256:5558d925d67f5b08d0bdb3d58f3611b2e9d4f070cb9b026bbdd52b6d487d5e03"},
-    {file = "Fiona-1.8.17-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:fcfd8b67403de9b1cc53c045c72542e9f30cb15e617c89c41b928046a9b27daa"},
-    {file = "Fiona-1.8.17-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:4743fd04e3c1d88619e3c1e1266b826427c4e3fcf1286abbda8d3480028781bf"},
-    {file = "Fiona-1.8.17-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:84131992cc664d531c93d1d4860c4b7ceac0516a2f31b9cd71823889c21fa67d"},
-    {file = "Fiona-1.8.17-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:d38a6ef59087b5a20ad7298608c5392e37705ff14d27b44435e04072bbf6632c"},
-    {file = "Fiona-1.8.17-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:7f101957734898d2ad694be8d2bdd3f3e4f722387d3972c89dcedcae6b6c4bb7"},
-    {file = "Fiona-1.8.17-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:c9adb0c4245aec2d642727e027b79b862be4ffa13bdcc65b7ea5f9405cec492c"},
-    {file = "Fiona-1.8.17-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:cfeed61eb411ddc30f5048c43f3dfc0c03a97603dfa2bdc2ee16d5d063ff24b4"},
-    {file = "Fiona-1.8.17.tar.gz", hash = "sha256:716201c21246587f374785bec6d6a20a984fe1f6c2b0e83bf15127eb8f724d0c"},
+    {file = "Fiona-1.8.13-cp27-cp27m-macosx_10_6_intel.whl", hash = "sha256:621d2230663f3fb95d60249e27fc8e2a6e456dc85f96bbfa9882a6b0a4ce0d1f"},
+    {file = "Fiona-1.8.13-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:976e91e056e818720510984970ec33f26b9744cdf52e586e08217bf34bfcb41e"},
+    {file = "Fiona-1.8.13-cp35-cp35m-macosx_10_6_intel.whl", hash = "sha256:5f39bdf39421d79c22ae0b4e0e1169820812941206446b2294e6ca40646708fc"},
+    {file = "Fiona-1.8.13-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:3104311faeb10dc80e00c46734a92275d67efabe1fd6e835fec8a6f77c0920bf"},
+    {file = "Fiona-1.8.13-cp36-cp36m-macosx_10_6_intel.whl", hash = "sha256:b771a58e6b93357096934fa26d65d0cf308345340d694e4d346d3b39879e265c"},
+    {file = "Fiona-1.8.13-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:5567efdba15eea935c581db94f3980ecbccecb4a7a5cd79651c8aed41c70a0fa"},
+    {file = "Fiona-1.8.13-cp37-cp37m-macosx_10_6_intel.whl", hash = "sha256:9347c2b8950575014ec233f6191e52d03ef68a5bb759a53a621b095610650a50"},
+    {file = "Fiona-1.8.13-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:0742177422d20f72e69e499886f96e1cbf5ce0c9752f8320a05eddcb0f1c576a"},
+    {file = "Fiona-1.8.13-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:83314cf2cbe50df24c290d241681964adf6fe9c0ba33a0a0f980a5f44008296b"},
+    {file = "Fiona-1.8.13-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:f0adf55192ac715c1ac7a19ff1aacd667ffe251df0e09b9a6feeddce45849f17"},
+    {file = "Fiona-1.8.13.tar.gz", hash = "sha256:5ec34898c8b983a723fb4e949dd3e0ed7e691c303e51f6bfd61e52ac9ac813ae"},
 ]
 gdal = [
-    {file = "GDAL-3.1.3.tar.gz", hash = "sha256:a82a13fb4a43c2c8e3a3afe8ec61772452d663820926f2bffb5de868278f94e2"},
+    {file = "GDAL-3.0.4.tar.gz", hash = "sha256:a17eaa6872e4b7f7fa82f86aeccecc57d224bd054952a56db64368ecaf18509c"},
 ]
 importlib-metadata = [
     {file = "importlib_metadata-2.0.0-py2.py3-none-any.whl", hash = "sha256:cefa1a2f919b866c5beb7c9f7b0ebb4061f30a8a9bf16d609b000e2dfaceb9c3"},
@@ -639,10 +600,6 @@ pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
 ]
-poetry-dev = [
-    {file = "poetry-dev-0.1.2.tar.gz", hash = "sha256:1b91fe0a4588012d001ca21d5be8c45e37a0fa5dd885ead8b1eb4e7e8be116dd"},
-    {file = "poetry_dev-0.1.2-py3-none-any.whl", hash = "sha256:1d0ca1573a831d8983fc697e630a0092dd5beb403e7d5556b08693508eb9962a"},
-]
 py = [
     {file = "py-1.9.0-py2.py3-none-any.whl", hash = "sha256:366389d1db726cd2fcfc79732e75410e5fe4d31db13692115529d34069a043c2"},
     {file = "py-1.9.0.tar.gz", hash = "sha256:9ca6883ce56b4e8da7e79ac18787889fa5206c79dcc67fb065376cd2fe03f342"},
@@ -656,16 +613,17 @@ pytest = [
     {file = "pytest-5.4.3.tar.gz", hash = "sha256:7979331bfcba207414f5e1263b5a0f8f521d0f457318836a7355531ed1a4c7d8"},
 ]
 rasterio = [
-    {file = "rasterio-1.1.6-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:bf172341db4cf4122d9b72a46296d1c4ca621b210c8d09d90475671f43e69a97"},
-    {file = "rasterio-1.1.6-cp35-cp35m-macosx_10_9_intel.whl", hash = "sha256:3051973bbede9475d4c88c9752e8fd33457d4da02212c788d1d12513d4604e97"},
-    {file = "rasterio-1.1.6-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:b0d5651459ec8c1cd89767a796b9d75321a784c3a7fd8afaf36c6704384911f0"},
-    {file = "rasterio-1.1.6-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:0536624352e3c7046ffb5f0a70afc4f0508b76b8d0e69a13793701da091fe5b1"},
-    {file = "rasterio-1.1.6-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:01dfb3f7a1a730c7417465903aadbf3651ffea10114c01e4e4d190a7739ef1c5"},
-    {file = "rasterio-1.1.6-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:b96ea842184a395eb90b6d7cef7532b4b6cc93e7ac7d9490ac80861991afa3ae"},
-    {file = "rasterio-1.1.6-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:23603a8b2e492fb971d7707b886886aeda20daa40959e25a929ba6049f91506c"},
-    {file = "rasterio-1.1.6-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:6a62064744fdae0eccc355347f756ce2beece8c509aefbfb32c27e3a6aeb97ca"},
-    {file = "rasterio-1.1.6-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:078c6b7756fcd98c517479ac5db99fbc71f17470287ca1513d8c4124d6a01f17"},
-    {file = "rasterio-1.1.6.tar.gz", hash = "sha256:c098881dfe301c5e3aa43a3171985fb365d64dc4d1c0a1d8288c7870fb240efe"},
+    {file = "rasterio-1.1.2-cp27-cp27m-macosx_10_6_intel.whl", hash = "sha256:47b5e800ed431c841bc8146a018c6872fe55694bc43a45b6d2ad8f29f3357388"},
+    {file = "rasterio-1.1.2-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:45a7d495e7f1b1fb5530371f8a8b949a0feb4148811d520f86298604f98c9329"},
+    {file = "rasterio-1.1.2-cp35-cp35m-macosx_10_6_intel.whl", hash = "sha256:2284d1045f4ba51b2dae24748e090f16d38480009ca0bf858028787a0928d810"},
+    {file = "rasterio-1.1.2-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:a583599afa9d206888e9e70a7f0c02d97c9f31b95a178cc5b079d478b0936703"},
+    {file = "rasterio-1.1.2-cp36-cp36m-macosx_10_6_intel.whl", hash = "sha256:28c19cbdeeeb70dba4b0ef0e3229599ff9041c3ccede571997b1c26514fae6f0"},
+    {file = "rasterio-1.1.2-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:8ad7386250592040b4b43980cbe92698520ecbe00dc05caeb20a2fa79a974a0c"},
+    {file = "rasterio-1.1.2-cp37-cp37m-macosx_10_6_intel.whl", hash = "sha256:ddfd917470d4feaa7f7d184fc72558f9bef5b0961ff65ef9a1e4f430589553a8"},
+    {file = "rasterio-1.1.2-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:5f948c90e62c2859592b1daa88fd64966bc863473fc0853d3054fdacc582db05"},
+    {file = "rasterio-1.1.2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:528643db9785d9734703b4c49cd4f5ae75995e30f841c91a5af99c0642e757a7"},
+    {file = "rasterio-1.1.2-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:5cffe1d4fe6adbbfa4db07e49e95e920defc202874b5ad6da89ee10c955ddf7c"},
+    {file = "rasterio-1.1.2.tar.gz", hash = "sha256:f6df894e37eefb408e4562ab9c14efcf027b0f5f279be5ff8b2105d03f2d3c37"},
 ]
 regex = [
     {file = "regex-2020.7.14-cp27-cp27m-win32.whl", hash = "sha256:e46d13f38cfcbb79bfdb2964b0fe12561fe633caf964a77a5f8d4e45fe5d2ef7"},
@@ -722,10 +680,6 @@ toml = [
     {file = "toml-0.10.1-py2.py3-none-any.whl", hash = "sha256:bda89d5935c2eac546d648028b9901107a595863cb36bae0c73ac804a9b4ce88"},
     {file = "toml-0.10.1.tar.gz", hash = "sha256:926b612be1e5ce0634a2ca03470f95169cf16f939018233a670519cb4ac58b0f"},
 ]
-tomlkit = [
-    {file = "tomlkit-0.7.0-py2.py3-none-any.whl", hash = "sha256:6babbd33b17d5c9691896b0e68159215a9387ebfa938aa3ac42f4a4beeb2b831"},
-    {file = "tomlkit-0.7.0.tar.gz", hash = "sha256:ac57f29693fab3e309ea789252fcce3061e19110085aa31af5446ca749325618"},
-]
 tqdm = [
     {file = "tqdm-4.49.0-py2.py3-none-any.whl", hash = "sha256:8f3c5815e3b5e20bc40463fa6b42a352178859692a68ffaa469706e6d38342a5"},
     {file = "tqdm-4.49.0.tar.gz", hash = "sha256:faf9c671bd3fad5ebaeee366949d969dca2b2be32c872a7092a1e1a9048d105b"},
@@ -752,10 +706,6 @@ typed-ast = [
     {file = "typed_ast-1.4.1-cp38-cp38-win_amd64.whl", hash = "sha256:fc0fea399acb12edbf8a628ba8d2312f583bdbdb3335635db062fa98cf71fca4"},
     {file = "typed_ast-1.4.1-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:d43943ef777f9a1c42bf4e552ba23ac77a6351de620aa9acf64ad54933ad4d34"},
     {file = "typed_ast-1.4.1.tar.gz", hash = "sha256:8c8aaad94455178e3187ab22c8b01a3837f8ee50e09cf31f1ba129eb293ec30b"},
-]
-typer = [
-    {file = "typer-0.3.2-py3-none-any.whl", hash = "sha256:ba58b920ce851b12a2d790143009fa00ac1d05b3ff3257061ff69dbdfc3d161b"},
-    {file = "typer-0.3.2.tar.gz", hash = "sha256:5455d750122cff96745b0dec87368f56d023725a7ebc9d2e54dd23dc86816303"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.7.4.3-py2-none-any.whl", hash = "sha256:dafc7639cde7f1b6e1acc0f457842a83e722ccca8eef5270af2d74792619a89f"},
