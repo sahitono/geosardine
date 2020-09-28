@@ -2,15 +2,15 @@ import os
 import warnings
 from functools import singledispatch
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import fiona
 import numba
 import numpy as np
 from rasterio.crs import CRS
 
-from geosardine._utility import calc_extent, calc_distance
-from geosardine.interpolate._utility import InterpolationResults
+from .._utility import calc_distance, calc_extent
+from ._utility import InterpolationResult
 
 
 @numba.njit(parallel=True)
@@ -46,32 +46,32 @@ def idw(
     longlat_distance: str = "harvesine",
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
-) -> Optional[InterpolationResults]:
+) -> Optional[InterpolationResult]:
     """
     create interpolated raster from point by using Inverse Distance Weighting (Shepard)
 
     Parameters
     ----------
-    points : numpy array, str.
-        list of points coordinate as numpy array or address of vector file
-        i.e shapefile or geojson
-        * if numpy array, then value input needed
-        * if str, then value is not needed. value will be created from file
+    points : numpy array, str
+        list of points coordinate as numpy array or address of vector file  
+        i.e shapefile or geojson  
+        * if numpy array, then value input needed  
+        * if str, then value is not needed instead will be created from file
     value : numpy array
         list of points value as numpy array, not needed if vector file used as input
     spatial_res : tuple or list of float
         spatial resolution in x and y axis
     column_name : str, default None
-        column name needed to obtain value from attribute data of vector file
-        * If str, value will be read from respective column name
+        column name needed to obtain value from attribute data of vector file  
+        * If str, value will be read from respective column name  
         * If None, first column will be used as value
     epsg : int, default 4326
-        EPSG code of reference system
-        * If 4326, WGS 1984 geographic system
+        EPSG code of reference system  
+        * If 4326, WGS 1984 geographic system  
         * If int, epsg will be parsed
     longlat_distance: str harvesine or vincenty, default harvesine
-        method used to calculate distance in spherical / ellipsoidal
-        * If harvesine, calculation will be faster but less accurate
+        method used to calculate distance in spherical / ellipsoidal  
+        * If harvesine, calculation will be faster but less accurate  
         * If vincenty, calculation will be slower but more accurate
     extent: tuple of float, default None
         how wide the raster will be
@@ -82,7 +82,7 @@ def idw(
 
     Returns
     -------
-    InterpolationResults
+    InterpolationResult
 
     """
     print("only support numpy array or vector file such as shapefile and geojson")
@@ -99,7 +99,7 @@ def _idw_array(
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
     source: Optional[Union[str, Path]] = None,
-) -> InterpolationResults:
+) -> InterpolationResult:
 
     if extent is None:
         x_min, y_min, x_max, y_max = calc_extent(points)
@@ -136,7 +136,7 @@ def _idw_array(
         power=power,
     ).reshape(rows, columns)
 
-    return InterpolationResults(
+    return InterpolationResult(
         interpolated_value,
         interpolated_coordinate,
         crs,
@@ -154,7 +154,7 @@ def _idw_file(
     longlat_distance: str = "harvesine",
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
-) -> InterpolationResults:
+) -> InterpolationResult:
     if os.path.exists(file_name):
         with fiona.open(file_name) as file:
             if "Point" in file.schema["geometry"]:

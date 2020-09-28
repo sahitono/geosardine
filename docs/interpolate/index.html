@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>geosardine.interpolate API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geosardine.interpolate</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/5d34e5400db3ccea9c3d0318163a47a67bb11816/geosardine\interpolate\__init__.py#L0-L3" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">from ._utility import InterpolationResult
+from .idw import idw
+
+__all__ = [&#34;idw&#34;, &#34;InterpolationResult&#34;]</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geosardine.interpolate.idw"><code class="name flex">
+<span>def <span class="ident">idw</span></span>(<span>points: Union[str, numpy.ndarray], value: numpy.ndarray, spatial_res: Tuple[float, float], epsg: int = 4326, column_name: Union[str, NoneType] = None, longlat_distance: str = 'harvesine', extent: Union[Tuple[float, float, float, float], NoneType] = None, power: Union[float, int] = 2) ‑> Union[geosardine.interpolate._utility.InterpolationResult, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>create interpolated raster from point by using Inverse Distance Weighting (Shepard)</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>points</code></strong> :&ensp;<code>numpy array, str</code></dt>
+<dd>list of points coordinate as numpy array or address of vector file<br>
+i.e shapefile or geojson<br>
+<em> if numpy array, then value input needed<br>
+</em> if str, then value is not needed instead will be created from file</dd>
+<dt><strong><code>value</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>list of points value as numpy array, not needed if vector file used as input</dd>
+<dt><strong><code>spatial_res</code></strong> :&ensp;<code>tuple</code> or <code>list</code> of <code>float</code></dt>
+<dd>spatial resolution in x and y axis</dd>
+<dt><strong><code>column_name</code></strong> :&ensp;<code>str</code>, default <code>None</code></dt>
+<dd>column name needed to obtain value from attribute data of vector file<br>
+<em> If str, value will be read from respective column name<br>
+</em> If None, first column will be used as value</dd>
+<dt><strong><code>epsg</code></strong> :&ensp;<code>int</code>, default <code>4326</code></dt>
+<dd>EPSG code of reference system<br>
+<em> If 4326, WGS 1984 geographic system<br>
+</em> If int, epsg will be parsed</dd>
+<dt><strong><code>longlat_distance</code></strong> :&ensp;<code>str harvesine</code> or <code>vincenty</code>, default <code>harvesine</code></dt>
+<dd>method used to calculate distance in spherical / ellipsoidal<br>
+<em> If harvesine, calculation will be faster but less accurate<br>
+</em> If vincenty, calculation will be slower but more accurate</dd>
+<dt><strong><code>extent</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, default <code>None</code></dt>
+<dd>how wide the raster will be
+* If None, extent will be calculated from points input
+* If tuple of float, user input of extent will be used</dd>
+<dt><strong><code>power</code></strong> :&ensp;<code>float</code>, default <code>2</code></dt>
+<dd>how smooth the interpolation will be</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="geosardine.interpolate.InterpolationResult" href="#geosardine.interpolate.InterpolationResult">InterpolationResult</a></code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/5d34e5400db3ccea9c3d0318163a47a67bb11816/geosardine\interpolate\idw.py#L39-L89" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@singledispatch
+def idw(
+    points: Union[str, np.ndarray],
+    value: np.ndarray,
+    spatial_res: Tuple[float, float],
+    epsg: int = 4326,
+    column_name: Optional[str] = None,
+    longlat_distance: str = &#34;harvesine&#34;,
+    extent: Optional[Tuple[float, float, float, float]] = None,
+    power: Union[float, int] = 2,
+) -&gt; Optional[InterpolationResult]:
+    &#34;&#34;&#34;
+    create interpolated raster from point by using Inverse Distance Weighting (Shepard)
+
+    Parameters
+    ----------
+    points : numpy array, str
+        list of points coordinate as numpy array or address of vector file  
+        i.e shapefile or geojson  
+        * if numpy array, then value input needed  
+        * if str, then value is not needed instead will be created from file
+    value : numpy array
+        list of points value as numpy array, not needed if vector file used as input
+    spatial_res : tuple or list of float
+        spatial resolution in x and y axis
+    column_name : str, default None
+        column name needed to obtain value from attribute data of vector file  
+        * If str, value will be read from respective column name  
+        * If None, first column will be used as value
+    epsg : int, default 4326
+        EPSG code of reference system  
+        * If 4326, WGS 1984 geographic system  
+        * If int, epsg will be parsed
+    longlat_distance: str harvesine or vincenty, default harvesine
+        method used to calculate distance in spherical / ellipsoidal  
+        * If harvesine, calculation will be faster but less accurate  
+        * If vincenty, calculation will be slower but more accurate
+    extent: tuple of float, default None
+        how wide the raster will be
+        * If None, extent will be calculated from points input
+        * If tuple of float, user input of extent will be used
+    power: float, default 2
+        how smooth the interpolation will be
+
+    Returns
+    -------
+    InterpolationResult
+
+    &#34;&#34;&#34;
+    print(&#34;only support numpy array or vector file such as shapefile and geojson&#34;)
+    return None</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geosardine.interpolate.InterpolationResult"><code class="flex name class">
+<span>class <span class="ident">InterpolationResult</span></span>
+<span>(</span><span>array: numpy.ndarray, coordinates: numpy.ndarray, crs: rasterio.crs.CRS, extent: Union[Tuple[float, float, float, float], NoneType] = None, source: Union[str, pathlib.Path, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Class to interpolation result</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>array</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>array of interpolated value.</dd>
+<dt><strong><code>coordinates</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>coordinate array of interpolated value<br>
+each pixel / grid is x and y or longitude and latitude</dd>
+<dt><strong><code>crs</code></strong> :&ensp;<code>rasterio.crs.CRS</code></dt>
+<dd>crs of interpolated value</dd>
+<dt><strong><code>extent</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>extent of interpolated<br>
+x min, y min, x max, y max</dd>
+<dt><strong><code>source</code></strong> :&ensp;<code>pathlib.Path</code>, default <code>None</code></dt>
+<dd>source file location<br>
+<em> if None, there is no source file<br>
+</em> if str, location of point file</dd>
+</dl>
+<p>Constructs interpolation result
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>array</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>array of interpolated value</dd>
+<dt><strong><code>coordinates</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>coordinate array of interpolated value<br>
+each pixel / grid is x and y or longitude and latitude</dd>
+<dt><strong><code>crs</code></strong> :&ensp;<code>rasterio.crs.CRS</code></dt>
+<dd>crs of interpolated value</dd>
+<dt><strong><code>extent</code></strong> :&ensp;<code>tuple</code>, default <code>None</code></dt>
+<dd>extent of interpolated<br>
+x min, y min, x max, y max<br>
+<em> if None, extent will be calculated from coordinate<br>
+</em> if tuple, extent will be same as input</dd>
+<dt><strong><code>source</code></strong> :&ensp;<code>str, pathlib.Path</code>, default <code>None</code></dt>
+<dd>source file location<br>
+<em> if None, there is no source file<br>
+</em> if str or <code>pathlib.Path</code>, location of point file</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/5d34e5400db3ccea9c3d0318163a47a67bb11816/geosardine\interpolate\_utility.py#L11-L95" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class InterpolationResult:
+    &#34;&#34;&#34;
+    Class to interpolation result
+
+    Attributes
+    ----------
+    array : numpy array
+        array of interpolated value.
+    coordinates : numpy array
+        coordinate array of interpolated value  
+        each pixel / grid is x and y or longitude and latitude  
+    crs : `rasterio.crs.CRS`
+        crs of interpolated value
+    extent : tuple
+        extent of interpolated  
+        x min, y min, x max, y max
+    source : pathlib.Path, default None
+        source file location  
+        * if None, there is no source file  
+        * if str, location of point file  
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        array: np.ndarray,
+        coordinates: np.ndarray,
+        crs: CRS,
+        extent: Optional[Tuple[float, float, float, float]] = None,
+        source: Optional[Union[str, Path]] = None,
+    ):
+        &#34;&#34;&#34;
+        Constructs interpolation result
+        Parameters
+        ----------
+        array : numpy array
+            array of interpolated value
+        coordinates : numpy array
+            coordinate array of interpolated value  
+            each pixel / grid is x and y or longitude and latitude
+        crs : `rasterio.crs.CRS`
+            crs of interpolated value
+        extent : tuple, default None
+            extent of interpolated  
+            x min, y min, x max, y max  
+            * if None, extent will be calculated from coordinate  
+            * if tuple, extent will be same as input
+        source : str, pathlib.Path, default None
+            source file location  
+            * if None, there is no source file  
+            * if str or `pathlib.Path`, location of point file
+        &#34;&#34;&#34;
+        self.array = array
+        self.crs = crs
+        self.extent = extent
+        self.source = source
+        self.output: Optional[Path] = None
+        self.affine: Affine = calc_affine(coordinates)
+        if extent is None:
+            self.extent = calc_extent(coordinates)
+        del coordinates
+
+        if type(source) == str:
+            self.source = Path(source)
+
+    def save(self, location: Optional[Union[str, Path]] = None) -&gt; None:
+        &#34;&#34;&#34;
+        save interpolated array as geotif
+        Parameters
+        ----------
+        location : str, pathlib.Path, default None
+            output location  &lt;br/&gt;
+            * if None, tiff will be saved in the same directory and same name as source
+                will only work if source is not None  &lt;br/&gt;
+            * if str or pathlib.Path, tiff will be saved in there  &lt;br/&gt;
+
+        &#34;&#34;&#34;
+        if self.source is None and location is None:
+            raise ValueError(&#34;Please provide output location&#34;)
+
+        self.output = location
+        if self.source is not None and location is None:
+            self.output = self.source.parent / f&#34;{self.source.stem}.tif&#34;
+            print(f&#34;OUTPUT is not specified, will be saved as {self.output}&#34;)
+
+        save_raster(self.output, self.array, affine=self.affine, crs=self.crs)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="geosardine.interpolate.InterpolationResult.save"><code class="name flex">
+<span>def <span class="ident">save</span></span>(<span>self, location: Union[str, pathlib.Path, NoneType] = None) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>save interpolated array as geotif
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>location</code></strong> :&ensp;<code>str, pathlib.Path</code>, default <code>None</code></dt>
+<dd>output location
+<br/>
+* if None, tiff will be saved in the same directory and same name as source
+will only work if source is not None
+<br/>
+* if str or pathlib.Path, tiff will be saved in there
+<br/></dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/5d34e5400db3ccea9c3d0318163a47a67bb11816/geosardine\interpolate\_utility.py#L75-L95" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def save(self, location: Optional[Union[str, Path]] = None) -&gt; None:
+    &#34;&#34;&#34;
+    save interpolated array as geotif
+    Parameters
+    ----------
+    location : str, pathlib.Path, default None
+        output location  &lt;br/&gt;
+        * if None, tiff will be saved in the same directory and same name as source
+            will only work if source is not None  &lt;br/&gt;
+        * if str or pathlib.Path, tiff will be saved in there  &lt;br/&gt;
+
+    &#34;&#34;&#34;
+    if self.source is None and location is None:
+        raise ValueError(&#34;Please provide output location&#34;)
+
+    self.output = location
+    if self.source is not None and location is None:
+        self.output = self.source.parent / f&#34;{self.source.stem}.tif&#34;
+        print(f&#34;OUTPUT is not specified, will be saved as {self.output}&#34;)
+
+    save_raster(self.output, self.array, affine=self.affine, crs=self.crs)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geosardine" href="../index.html">geosardine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="geosardine.interpolate.idw" href="#geosardine.interpolate.idw">idw</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geosardine.interpolate.InterpolationResult" href="#geosardine.interpolate.InterpolationResult">InterpolationResult</a></code></h4>
+<ul class="">
+<li><code><a title="geosardine.interpolate.InterpolationResult.save" href="#geosardine.interpolate.InterpolationResult.save">save</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
