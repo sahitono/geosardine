@@ -8,7 +8,28 @@ from rasterio.crs import CRS
 from geosardine._utility import calc_affine, calc_extent, save_raster
 
 
-class InterpolationResults:
+class InterpolationResult:
+    """
+    Class to interpolation result
+
+    Attributes
+    ----------
+    array : numpy array
+        array of interpolated value.
+    coordinates : numpy array
+        coordinate array of interpolated value  
+        each pixel / grid is x and y or longitude and latitude  
+    crs : `rasterio.crs.CRS`
+        crs of interpolated value
+    extent : tuple
+        extent of interpolated  
+        x min, y min, x max, y max
+    source : pathlib.Path, default None
+        source file location  
+        * if None, there is no source file  
+        * if str, location of point file  
+    """
+
     def __init__(
         self,
         array: np.ndarray,
@@ -17,6 +38,27 @@ class InterpolationResults:
         extent: Optional[Tuple[float, float, float, float]] = None,
         source: Optional[Union[str, Path]] = None,
     ):
+        """
+        Constructs interpolation result
+        Parameters
+        ----------
+        array : numpy array
+            array of interpolated value
+        coordinates : numpy array
+            coordinate array of interpolated value  
+            each pixel / grid is x and y or longitude and latitude
+        crs : `rasterio.crs.CRS`
+            crs of interpolated value
+        extent : tuple, default None
+            extent of interpolated  
+            x min, y min, x max, y max  
+            * if None, extent will be calculated from coordinate  
+            * if tuple, extent will be same as input
+        source : str, pathlib.Path, default None
+            source file location  
+            * if None, there is no source file  
+            * if str or `pathlib.Path`, location of point file
+        """
         self.array = array
         self.crs = crs
         self.extent = extent
@@ -31,6 +73,17 @@ class InterpolationResults:
             self.source = Path(source)
 
     def save(self, location: Optional[Union[str, Path]] = None) -> None:
+        """
+        save interpolated array as geotif
+        Parameters
+        ----------
+        location : str, pathlib.Path, default None
+            output location  <br/>
+            * if None, tiff will be saved in the same directory and same name as source
+                will only work if source is not None  <br/>
+            * if str or pathlib.Path, tiff will be saved in there  <br/>
+
+        """
         if self.source is None and location is None:
             raise ValueError("Please provide output location")
 

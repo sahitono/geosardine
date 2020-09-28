@@ -2,8 +2,8 @@ import math
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Union
 
-import numpy as np
 import numba
+import numpy as np
 import rasterio
 from affine import Affine
 from rasterio.crs import CRS
@@ -53,8 +53,26 @@ def harvesine_distance(
     long_lat2: Union[Tuple[float, float], List[float]],
 ) -> float:
     """
-    credit to https://rafatieppo.github.io/post/2018_07_27_idw2pyr/
+    Calculate distance in ellipsoid by harvesine method
+    faster, less accurate
+
+    Parameters
+    ----------
+    long_lat1 : tuple, list
+        first point coordinate in longitude, latitude
+    long_lat2 : tuple, list
+        second point coordinate in longitude, latitude
+
+    Returns
+    -------
+    float
+        distance
+
+    Notes
+    -------
+    https://rafatieppo.github.io/post/2018_07_27_idw2pyr/
     """
+
     radians = math.pi / 180
     long1, lat1 = np.radians(long_lat1)
     long2, lat2 = np.radians(long_lat2)
@@ -82,7 +100,23 @@ def vincenty_distance(
     long_lat2: Union[Tuple[float, float], List[float]],
 ) -> float:
     """
-    credit to https://www.johndcook.com/blog/2018/11/24/spheroid-distance/
+    Calculate distance in ellipsoid by vincenty method
+    slower, more accurate
+
+    Parameters
+    ----------
+    long_lat1 : tuple, list
+        first point coordinate in longitude, latitude
+    long_lat2 : tuple, list
+        second point coordinate in longitude, latitude
+
+    Returns
+    -------
+    distance
+
+    Notes
+    -------
+    https://www.johndcook.com/blog/2018/11/24/spheroid-distance/
     """
 
     # WGS 1984

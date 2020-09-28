@@ -20,12 +20,20 @@ def xy2rowcol(
     Convert geographic coordinate to image coordinate
     Parameters
     ----------
-    xy
-    affine
-    interpolate
+    xy : tuple, list
+        2d geographic or projected coordinate
+    affine : Affine
+        affine parameter from rasterio.transform
+        or create it with affine.Affine https://pypi.org/project/affine/
+    interpolate : bool, default True
+        choose to interpolate or not
+        * if True, value will be interpolated from  nearest value
+        * if False, value will be obtained from exact row and column
 
     Returns
     -------
+    tuple
+        row, column
 
     """
     col, row = ~affine * xy
@@ -39,9 +47,19 @@ def rowcol2xy(
 ) -> Tuple[float, float]:
     """
     Convert image coordinate to geographic coordinate
-    :param row_col:
-    :param affine:
-    :return:
+    Parameters
+    ----------
+    row_col : tuple, list
+        image coordinate in row, column
+    affine : Affine
+        affine parameter from rasterio.transform
+        or create it with affine.Affine https://pypi.org/project/affine/
+
+    Returns
+    -------
+    tuple
+        2d geographic or projected coordinate
+
     """
     row, col = row_col
     return affine * (col, row)
@@ -94,12 +112,27 @@ def drape2raster(
 ) -> Tuple[float, float, float]:
     """
     Find Z of 2D coordinate
-    :param xy: 2D coordinate [x, y]
-    :param dsm_array: dsm as numpy array
-    :param affine: affine parameter from rasterio.transform
-    :param interpolate: interpolate or exact value
-    :param no_data: no data value
-    :return: 3D coordinate
+    Parameters
+    ----------
+    xy : tuple, list, numpy array
+        2D coordinate x,y
+    dsm_array : numpy array
+        height array
+    affine : Affine
+        affine parameter from rasterio.transform
+        or create it with affine.Affine https://pypi.org/project/affine/
+    interpolate : bool, default True
+        choose to interpolate or not
+        * if True, value will be interpolated from  nearest value
+        * if False, value will be obtained from exact row and column
+    no_data : float, int, default -32767
+        value for pixel with no data
+
+    Returns
+    -------
+    tuple
+        3D coordinate
+
     """
     x, y = xy
     row, col = xy2rowcol(xy, affine, interpolate)
@@ -132,11 +165,23 @@ def drape_shapely(
 ) -> Union[Polygon, LineString]:
     """
     Drape with shapely geometry as input
-    :param geometry:
-    :param raster: rasterio dataset reader
-    :param interpolate:
-    :return:
+    Parameters
+    ----------
+    geometry : shapely polygon, shapely linestring
+        vector data as shapely object, currently only support polygon or linestring
+    raster : rasterio.io.DatasetReader
+        rasterio reader of raster file
+    interpolate : bool, default True
+        choose to interpolate or not
+        * if True, value will be interpolated from  nearest value
+        * if False, value will be obtained from exact row and column
+
+    Returns
+    -------
+    shapely.Polygon or shapely.LineString
+
     """
+
     dsm_array = raster.read(1)
     affine = raster.transform
     no_data = raster.nodatavals
@@ -175,6 +220,25 @@ def drape_geojson(
 ) -> Generator[Dict, None, None]:
     """
     Drape with geojson as input, fiona uses geojson as interface.
+    Parameters
+    ----------
+    features : Iterable[Dict], fiona.Collection
+        vector as geojson
+    raster : rasterio.io.DatasetReader
+        rasterio reader of raster file
+    interpolate : bool, default True
+        choose to interpolate or not
+        * if True, value will be interpolated from  nearest value
+        * if False, value will be obtained from exact row and column
+
+    Yields
+    -------
+    dict
+        geojson
+
+    """
+    """
+    Drape with geojson as input, fiona uses geojson as interface.
     :param features: geojson
     :param raster: rasterio dataset reader
     :param interpolate:
@@ -209,6 +273,21 @@ def drape_geojson(
 def spatial_join(
     target: fiona.Collection, join: fiona.Collection
 ) -> Tuple[List[Dict], Dict]:
+    """
+    Join attribute from 2 vector by location.
+    Parameters
+    ----------
+    target : fiona.Collection
+        vector target which you want to be joined
+    join : fiona.Collection
+        vector which data wont to be obtained
+
+    Returns
+    -------
+    dict
+        geojson
+
+    """
     """
     Join attribute from 2 vector by location.
     :param target: Vector target to be joined. [fiona.Collection]
