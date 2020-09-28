@@ -53,29 +53,29 @@ def idw(
     Parameters
     ----------
     points : numpy array, str
-        list of points coordinate as numpy array or address of vector file  
-        i.e shapefile or geojson  
-        * if numpy array, then value input needed  
+        list of points coordinate as numpy array or address of vector file  <br/>
+        i.e shapefile or geojson  <br/>
+        * if numpy array, then value input needed  <br/>
         * if str, then value is not needed instead will be created from file
     value : numpy array
         list of points value as numpy array, not needed if vector file used as input
     spatial_res : tuple or list of float
         spatial resolution in x and y axis
     column_name : str, default None
-        column name needed to obtain value from attribute data of vector file  
-        * If str, value will be read from respective column name  
+        column name needed to obtain value from attribute data of vector file  <br/>
+        * If str, value will be read from respective column name  <br/>
         * If None, first column will be used as value
     epsg : int, default 4326
-        EPSG code of reference system  
-        * If 4326, WGS 1984 geographic system  
+        EPSG code of reference system  <br/>
+        * If 4326, WGS 1984 geographic system  <br/>
         * If int, epsg will be parsed
     longlat_distance: str harvesine or vincenty, default harvesine
-        method used to calculate distance in spherical / ellipsoidal  
-        * If harvesine, calculation will be faster but less accurate  
+        method used to calculate distance in spherical / ellipsoidal  <br/>
+        * If harvesine, calculation will be faster but less accurate  <br/>
         * If vincenty, calculation will be slower but more accurate
     extent: tuple of float, default None
-        how wide the raster will be
-        * If None, extent will be calculated from points input
+        how wide the raster will be  <br/>
+        * If None, extent will be calculated from points input  <br/>
         * If tuple of float, user input of extent will be used
     power: float, default 2
         how smooth the interpolation will be

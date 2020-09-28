@@ -25,7 +25,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/5d34e5400db3ccea9c3d0318163a47a67bb11816/geosardine\interpolate\__init__.py#L0-L3" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\interpolate\__init__.py#L0-L3" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">from ._utility import InterpolationResult
 from .idw import idw
@@ -48,29 +48,40 @@ __all__ = [&#34;idw&#34;, &#34;InterpolationResult&#34;]</code></pre>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>points</code></strong> :&ensp;<code>numpy array, str</code></dt>
-<dd>list of points coordinate as numpy array or address of vector file<br>
-i.e shapefile or geojson<br>
-<em> if numpy array, then value input needed<br>
-</em> if str, then value is not needed instead will be created from file</dd>
+<dd>list of points coordinate as numpy array or address of vector file
+<br/>
+i.e shapefile or geojson
+<br/>
+* if numpy array, then value input needed
+<br/>
+* if str, then value is not needed instead will be created from file</dd>
 <dt><strong><code>value</code></strong> :&ensp;<code>numpy array</code></dt>
 <dd>list of points value as numpy array, not needed if vector file used as input</dd>
 <dt><strong><code>spatial_res</code></strong> :&ensp;<code>tuple</code> or <code>list</code> of <code>float</code></dt>
 <dd>spatial resolution in x and y axis</dd>
 <dt><strong><code>column_name</code></strong> :&ensp;<code>str</code>, default <code>None</code></dt>
-<dd>column name needed to obtain value from attribute data of vector file<br>
-<em> If str, value will be read from respective column name<br>
-</em> If None, first column will be used as value</dd>
+<dd>column name needed to obtain value from attribute data of vector file
+<br/>
+* If str, value will be read from respective column name
+<br/>
+* If None, first column will be used as value</dd>
 <dt><strong><code>epsg</code></strong> :&ensp;<code>int</code>, default <code>4326</code></dt>
-<dd>EPSG code of reference system<br>
-<em> If 4326, WGS 1984 geographic system<br>
-</em> If int, epsg will be parsed</dd>
+<dd>EPSG code of reference system
+<br/>
+* If 4326, WGS 1984 geographic system
+<br/>
+* If int, epsg will be parsed</dd>
 <dt><strong><code>longlat_distance</code></strong> :&ensp;<code>str harvesine</code> or <code>vincenty</code>, default <code>harvesine</code></dt>
-<dd>method used to calculate distance in spherical / ellipsoidal<br>
-<em> If harvesine, calculation will be faster but less accurate<br>
-</em> If vincenty, calculation will be slower but more accurate</dd>
+<dd>method used to calculate distance in spherical / ellipsoidal
+<br/>
+* If harvesine, calculation will be faster but less accurate
+<br/>
+* If vincenty, calculation will be slower but more accurate</dd>
 <dt><strong><code>extent</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, default <code>None</code></dt>
 <dd>how wide the raster will be
+<br/>
 * If None, extent will be calculated from points input
+<br/>
 * If tuple of float, user input of extent will be used</dd>
 <dt><strong><code>power</code></strong> :&ensp;<code>float</code>, default <code>2</code></dt>
 <dd>how smooth the interpolation will be</dd>
@@ -83,7 +94,7 @@ i.e shapefile or geojson<br>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/5d34e5400db3ccea9c3d0318163a47a67bb11816/geosardine\interpolate\idw.py#L39-L89" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\interpolate\idw.py#L39-L89" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@singledispatch
 def idw(
@@ -102,29 +113,29 @@ def idw(
     Parameters
     ----------
     points : numpy array, str
-        list of points coordinate as numpy array or address of vector file  
-        i.e shapefile or geojson  
-        * if numpy array, then value input needed  
+        list of points coordinate as numpy array or address of vector file  &lt;br/&gt;
+        i.e shapefile or geojson  &lt;br/&gt;
+        * if numpy array, then value input needed  &lt;br/&gt;
         * if str, then value is not needed instead will be created from file
     value : numpy array
         list of points value as numpy array, not needed if vector file used as input
     spatial_res : tuple or list of float
         spatial resolution in x and y axis
     column_name : str, default None
-        column name needed to obtain value from attribute data of vector file  
-        * If str, value will be read from respective column name  
+        column name needed to obtain value from attribute data of vector file  &lt;br/&gt;
+        * If str, value will be read from respective column name  &lt;br/&gt;
         * If None, first column will be used as value
     epsg : int, default 4326
-        EPSG code of reference system  
-        * If 4326, WGS 1984 geographic system  
+        EPSG code of reference system  &lt;br/&gt;
+        * If 4326, WGS 1984 geographic system  &lt;br/&gt;
         * If int, epsg will be parsed
     longlat_distance: str harvesine or vincenty, default harvesine
-        method used to calculate distance in spherical / ellipsoidal  
-        * If harvesine, calculation will be faster but less accurate  
+        method used to calculate distance in spherical / ellipsoidal  &lt;br/&gt;
+        * If harvesine, calculation will be faster but less accurate  &lt;br/&gt;
         * If vincenty, calculation will be slower but more accurate
     extent: tuple of float, default None
-        how wide the raster will be
-        * If None, extent will be calculated from points input
+        how wide the raster will be  &lt;br/&gt;
+        * If None, extent will be calculated from points input  &lt;br/&gt;
         * If tuple of float, user input of extent will be used
     power: float, default 2
         how smooth the interpolation will be
@@ -154,17 +165,22 @@ def idw(
 <dt><strong><code>array</code></strong> :&ensp;<code>numpy array</code></dt>
 <dd>array of interpolated value.</dd>
 <dt><strong><code>coordinates</code></strong> :&ensp;<code>numpy array</code></dt>
-<dd>coordinate array of interpolated value<br>
-each pixel / grid is x and y or longitude and latitude</dd>
+<dd>coordinate array of interpolated value
+<br/>
+each pixel / grid is x and y or longitude and latitude
+<br/></dd>
 <dt><strong><code>crs</code></strong> :&ensp;<code>rasterio.crs.CRS</code></dt>
 <dd>crs of interpolated value</dd>
 <dt><strong><code>extent</code></strong> :&ensp;<code>tuple</code></dt>
-<dd>extent of interpolated<br>
+<dd>extent of interpolated
+<br/>
 x min, y min, x max, y max</dd>
 <dt><strong><code>source</code></strong> :&ensp;<code>pathlib.Path</code>, default <code>None</code></dt>
-<dd>source file location<br>
-<em> if None, there is no source file<br>
-</em> if str, location of point file</dd>
+<dd>source file location
+<br/>
+* if None, there is no source file
+<br/>
+* if str, location of point file</dd>
 </dl>
 <p>Constructs interpolation result
 Parameters</p>
@@ -173,24 +189,24 @@ Parameters</p>
 <dt><strong><code>array</code></strong> :&ensp;<code>numpy array</code></dt>
 <dd>array of interpolated value</dd>
 <dt><strong><code>coordinates</code></strong> :&ensp;<code>numpy array</code></dt>
-<dd>coordinate array of interpolated value<br>
+<dd>coordinate array of interpolated value <br/>
 each pixel / grid is x and y or longitude and latitude</dd>
 <dt><strong><code>crs</code></strong> :&ensp;<code>rasterio.crs.CRS</code></dt>
 <dd>crs of interpolated value</dd>
 <dt><strong><code>extent</code></strong> :&ensp;<code>tuple</code>, default <code>None</code></dt>
-<dd>extent of interpolated<br>
-x min, y min, x max, y max<br>
-<em> if None, extent will be calculated from coordinate<br>
-</em> if tuple, extent will be same as input</dd>
+<dd>extent of interpolated <br/>
+x min, y min, x max, y max <br/>
+* if None, extent will be calculated from coordinate <br/>
+* if tuple, extent will be same as input</dd>
 <dt><strong><code>source</code></strong> :&ensp;<code>str, pathlib.Path</code>, default <code>None</code></dt>
-<dd>source file location<br>
-<em> if None, there is no source file<br>
-</em> if str or <code>pathlib.Path</code>, location of point file</dd>
+<dd>source file location <br/>
+* if None, there is no source file <br/>
+* if str or <code>pathlib.Path</code>, location of point file</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/5d34e5400db3ccea9c3d0318163a47a67bb11816/geosardine\interpolate\_utility.py#L11-L95" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\interpolate\_utility.py#L11-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class InterpolationResult:
     &#34;&#34;&#34;
@@ -201,17 +217,17 @@ x min, y min, x max, y max<br>
     array : numpy array
         array of interpolated value.
     coordinates : numpy array
-        coordinate array of interpolated value  
-        each pixel / grid is x and y or longitude and latitude  
+        coordinate array of interpolated value  &lt;br/&gt;
+        each pixel / grid is x and y or longitude and latitude  &lt;br/&gt;
     crs : `rasterio.crs.CRS`
         crs of interpolated value
     extent : tuple
-        extent of interpolated  
+        extent of interpolated  &lt;br/&gt;
         x min, y min, x max, y max
     source : pathlib.Path, default None
-        source file location  
-        * if None, there is no source file  
-        * if str, location of point file  
+        source file location  &lt;br/&gt;
+        * if None, there is no source file  &lt;br/&gt;
+        * if str, location of point file
     &#34;&#34;&#34;
 
     def __init__(
@@ -229,18 +245,18 @@ x min, y min, x max, y max<br>
         array : numpy array
             array of interpolated value
         coordinates : numpy array
-            coordinate array of interpolated value  
+            coordinate array of interpolated value &lt;br/&gt;
             each pixel / grid is x and y or longitude and latitude
         crs : `rasterio.crs.CRS`
             crs of interpolated value
         extent : tuple, default None
-            extent of interpolated  
-            x min, y min, x max, y max  
-            * if None, extent will be calculated from coordinate  
+            extent of interpolated &lt;br/&gt;
+            x min, y min, x max, y max &lt;br/&gt;
+            * if None, extent will be calculated from coordinate &lt;br/&gt;
             * if tuple, extent will be same as input
         source : str, pathlib.Path, default None
-            source file location  
-            * if None, there is no source file  
+            source file location &lt;br/&gt;
+            * if None, there is no source file &lt;br/&gt;
             * if str or `pathlib.Path`, location of point file
         &#34;&#34;&#34;
         self.array = array
@@ -300,7 +316,7 @@ will only work if source is not None
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/5d34e5400db3ccea9c3d0318163a47a67bb11816/geosardine\interpolate\_utility.py#L75-L95" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\interpolate\_utility.py#L75-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save(self, location: Optional[Union[str, Path]] = None) -&gt; None:
     &#34;&#34;&#34;

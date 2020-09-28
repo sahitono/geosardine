@@ -1,4 +1,4 @@
-# Geo-Sardine
+# Geo-Sardine :fish:
 ![python package](https://github.com/sahitono/geosardine/workflows/python%20package/badge.svg)
 [![codecov](https://codecov.io/gh/sahitono/geosardine/branch/master/graph/badge.svg)](https://codecov.io/gh/sahitono/geosardine)
 
@@ -7,6 +7,7 @@ Collection of spatial operation which i occasionally use written in python:
  - Drape vector to raster
  - Spatial join between two vector
 
+:blue_book: documentation: https://sahitono.github.io/geosardine
 ## Setup
 install with pip
 ```pip install geosardine```

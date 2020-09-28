@@ -17,17 +17,17 @@ class InterpolationResult:
     array : numpy array
         array of interpolated value.
     coordinates : numpy array
-        coordinate array of interpolated value  
-        each pixel / grid is x and y or longitude and latitude  
+        coordinate array of interpolated value  <br/>
+        each pixel / grid is x and y or longitude and latitude  <br/>
     crs : `rasterio.crs.CRS`
         crs of interpolated value
     extent : tuple
-        extent of interpolated  
+        extent of interpolated  <br/>
         x min, y min, x max, y max
     source : pathlib.Path, default None
-        source file location  
-        * if None, there is no source file  
-        * if str, location of point file  
+        source file location  <br/>
+        * if None, there is no source file  <br/>
+        * if str, location of point file
     """
 
     def __init__(
@@ -45,18 +45,18 @@ class InterpolationResult:
         array : numpy array
             array of interpolated value
         coordinates : numpy array
-            coordinate array of interpolated value  
+            coordinate array of interpolated value <br/>
             each pixel / grid is x and y or longitude and latitude
         crs : `rasterio.crs.CRS`
             crs of interpolated value
         extent : tuple, default None
-            extent of interpolated  
-            x min, y min, x max, y max  
-            * if None, extent will be calculated from coordinate  
+            extent of interpolated <br/>
+            x min, y min, x max, y max <br/>
+            * if None, extent will be calculated from coordinate <br/>
             * if tuple, extent will be same as input
         source : str, pathlib.Path, default None
-            source file location  
-            * if None, there is no source file  
+            source file location <br/>
+            * if None, there is no source file <br/>
             * if str or `pathlib.Path`, location of point file
         """
         self.array = array
