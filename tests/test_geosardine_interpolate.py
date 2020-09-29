@@ -21,7 +21,7 @@ def test_idw():
     )
 
     with pytest.warns(UserWarning):
-        interp = interpolate.idw("tests/idw/test_idw_file.geojson", (0.01, 0.01),)
+        interp = interpolate.idw("tests/idw/test_idw_file.geojson", (0.01, 0.01))
         # assert (np.load("tests/idw/test_idw_file_array.npy") == interp.array).all()
         assert type(interp.array) == np.ndarray and len(interp.array.shape) == 2
         assert interp.save() is None
