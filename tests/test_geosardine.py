@@ -1,7 +1,13 @@
 import numpy as np
 from affine import Affine
-from geosardine import interpolate, rowcol2xy, xy2rowcol, drape2raster
-from geosardine._utility import calc_extent
+
+from geosardine import (
+    drape2raster,
+    harvesine_distance,
+    rowcol2xy,
+    vincenty_distance,
+    xy2rowcol,
+)
 
 
 def test_convert():
@@ -26,22 +32,35 @@ def test_drape():
     )
 
 
-def test_idw():
-    xy = np.load("tests/idw/test_idw_xy.npy")
-
-    values = np.load("tests/idw/test_idw_val.npy")
+def test_distance():
+    assert (
+        harvesine_distance(
+            np.array([106 + 39 / 60 + 21 / 3600, 6 + 7 / 60 + 32 / 3600]),
+            np.array([110 + 3 / 60 + 26 / 3600, 7 + 54 / 60 + 19 / 3600]),
+        )
+        == 424815.7225367302
+    )
 
     assert (
-        np.load("tests/idw/test_idw_array.npy")
-        == interpolate.idw(xy, values, (0.01, 0.01), extent=calc_extent(xy)).array
-    ).all()
+        harvesine_distance(
+            [106 + 39 / 60 + 21 / 3600, 6 + 7 / 60 + 32 / 3600],
+            [110 + 3 / 60 + 26 / 3600, 7 + 54 / 60 + 19 / 3600],
+        )
+        == 424815.7225367302
+    )
 
     assert (
-        np.load("tests/idw/test_idw_file_array.npy")
-        == interpolate.idw(
-            "tests/idw/test_idw_file.geojson",
-            (0.01, 0.01),
-            column_name="week1",
-            extent=(106.6, -6.72, 106.97, -6.41),
-        ).array
-    ).all()
+        vincenty_distance(
+            np.array([106 + 39 / 60 + 21 / 3600, 6 + 7 / 60 + 32 / 3600]),
+            np.array([110 + 3 / 60 + 26 / 3600, 7 + 54 / 60 + 19 / 3600]),
+        )
+        == 424229.276852855
+    )
+
+    assert (
+        vincenty_distance(
+            [106 + 39 / 60 + 21 / 3600, 6 + 7 / 60 + 32 / 3600],
+            [110 + 3 / 60 + 26 / 3600, 7 + 54 / 60 + 19 / 3600],
+        )
+        == 424229.276852855
+    )

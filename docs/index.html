@@ -26,7 +26,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\__init__.py#L0-L27" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\__init__.py#L0-L27" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 Spatial operations extend fiona and rasterio
@@ -54,7 +54,7 @@ __all__ = [
     &#34;vincenty_distance&#34;,
 ]
 
-__version__ = &#34;0.5.0&#34;
+__version__ = &#34;0.6.0&#34;
 __author__ = &#34;Sahit Tuntas Sadono&#34;</code></pre>
 </details>
 </section>
@@ -103,7 +103,7 @@ nearest value
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\_geosardine.py#L106-L147" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\_geosardine.py#L106-L147" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def drape2raster(
     xy: List[float],
@@ -175,7 +175,7 @@ nearest value
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\_geosardine.py#L216-L270" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\_geosardine.py#L216-L270" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def drape_geojson(
     features: Union[Iterable[Dict], fiona.Collection],
@@ -260,7 +260,7 @@ nearest value
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\_geosardine.py#L161-L213" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\_geosardine.py#L161-L213" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def drape_shapely(
     geometry: Union[Polygon, LineString],
@@ -318,16 +318,16 @@ nearest value
 </details>
 </dd>
 <dt id="geosardine.harvesine_distance"><code class="name flex">
-<span>def <span class="ident">harvesine_distance</span></span>(<span>long_lat1: Union[Tuple[float, float], List[float]], long_lat2: Union[Tuple[float, float], List[float]]) ‑> float</span>
+<span>def <span class="ident">harvesine_distance</span></span>(<span>long_lat1: Union[numpy.ndarray, Tuple[float, float], List[float]], long_lat2: Union[numpy.ndarray, Tuple[float, float], List[float]]) ‑> Union[float, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate distance in ellipsoid by harvesine method
 faster, less accurate</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>long_lat1</code></strong> :&ensp;<code>tuple, list</code></dt>
+<dt><strong><code>long_lat1</code></strong> :&ensp;<code>tuple, list, numpy array</code></dt>
 <dd>first point coordinate in longitude, latitude</dd>
-<dt><strong><code>long_lat2</code></strong> :&ensp;<code>tuple, list</code></dt>
+<dt><strong><code>long_lat2</code></strong> :&ensp;<code>tuple, list, numpy array</code></dt>
 <dd>second point coordinate in longitude, latitude</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -340,22 +340,22 @@ faster, less accurate</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\_utility.py#L50-L94" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\_utility.py#L51-L78" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@numba.njit()
+<pre><code class="python">@singledispatch
 def harvesine_distance(
-    long_lat1: Union[Tuple[float, float], List[float]],
-    long_lat2: Union[Tuple[float, float], List[float]],
-) -&gt; float:
+    long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
+    long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
+) -&gt; Optional[float]:
     &#34;&#34;&#34;
     Calculate distance in ellipsoid by harvesine method
     faster, less accurate
 
     Parameters
     ----------
-    long_lat1 : tuple, list
+    long_lat1 : tuple, list, numpy array
         first point coordinate in longitude, latitude
-    long_lat2 : tuple, list
+    long_lat2 : tuple, list, numpy array
         second point coordinate in longitude, latitude
 
     Returns
@@ -368,25 +368,8 @@ def harvesine_distance(
     https://rafatieppo.github.io/post/2018_07_27_idw2pyr/
     &#34;&#34;&#34;
 
-    radians = math.pi / 180
-    long1, lat1 = np.radians(long_lat1)
-    long2, lat2 = np.radians(long_lat2)
-
-    long1 *= radians
-    long2 *= radians
-    lat1 *= radians
-    lat2 *= radians
-
-    earth_radius_equator = 6378137.0  # earth average radius at equador (km)
-    long_diff = long2 - long1
-    lat_diff = lat2 - lat1
-    a = (
-        math.sin(lat_diff / 2) ** 2
-        + math.cos(lat1) * math.cos(lat2) * math.sin(long_diff / 2) ** 2
-    )
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    distance = earth_radius_equator * c
-    return distance</code></pre>
+    print(&#34;only accept numpy array, list and tuple&#34;)
+    return None</code></pre>
 </details>
 </dd>
 <dt id="geosardine.rowcol2xy"><code class="name flex">
@@ -411,7 +394,7 @@ or create it with affine.Affine <a href="https://pypi.org/project/affine/">https
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\_geosardine.py#L45-L65" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\_geosardine.py#L45-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rowcol2xy(
     row_col: Union[Tuple[int, int], List[int]], affine: Affine
@@ -457,7 +440,7 @@ Parameters</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\_geosardine.py#L273-L329" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\_geosardine.py#L273-L329" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial_join(
     target: fiona.Collection, join: fiona.Collection
@@ -519,7 +502,7 @@ Parameters</p>
 </details>
 </dd>
 <dt id="geosardine.vincenty_distance"><code class="name flex">
-<span>def <span class="ident">vincenty_distance</span></span>(<span>long_lat1: Union[Tuple[float, float], List[float]], long_lat2: Union[Tuple[float, float], List[float]]) ‑> float</span>
+<span>def <span class="ident">vincenty_distance</span></span>(<span>long_lat1: Union[numpy.ndarray, Tuple[float, float], List[float]], long_lat2: Union[numpy.ndarray, Tuple[float, float], List[float]]) ‑> Union[float, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate distance in ellipsoid by vincenty method
@@ -541,13 +524,13 @@ slower, more accurate</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\_utility.py#L97-L187" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\_utility.py#L117-L143" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">@numba.njit()
+<pre><code class="python">@singledispatch
 def vincenty_distance(
-    long_lat1: Union[Tuple[float, float], List[float]],
-    long_lat2: Union[Tuple[float, float], List[float]],
-) -&gt; float:
+    long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
+    long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
+) -&gt; Optional[float]:
     &#34;&#34;&#34;
     Calculate distance in ellipsoid by vincenty method
     slower, more accurate
@@ -568,72 +551,8 @@ def vincenty_distance(
     https://www.johndcook.com/blog/2018/11/24/spheroid-distance/
     &#34;&#34;&#34;
 
-    # WGS 1984
-    earth_radius_equator = 6378137.0  # equatorial radius in meters
-    flattening = 1 / 298.257223563
-    earth_radius_poles = (1 - flattening) * earth_radius_equator
-    tolerance = 1e-11  # to stop iteration
-
-    long1, lat1 = long_lat1
-    long2, lat2 = long_lat2
-    distance = 0.0
-
-    if long1 != long2 and lat1 != lat2:
-        phi1, phi2 = lat1, lat2
-        u1 = math.atan((1 - flattening) * math.tan(phi1))
-        u2 = math.atan((1 - flattening) * math.tan(phi2))
-        long_diff = long2 - long1
-
-        lambda_old = long_diff + 0
-
-        while True:
-            t = (math.cos(u2) * math.sin(lambda_old)) ** 2
-            t += (
-                math.cos(u1) * math.sin(u2)
-                - math.sin(u1) * math.cos(u2) * math.cos(lambda_old)
-            ) ** 2
-            sin_sigma = t ** 0.5
-            cos_sigma = math.sin(u1) * math.sin(u2) + math.cos(u1) * math.cos(
-                u2
-            ) * math.cos(lambda_old)
-            sigma = math.atan2(sin_sigma, cos_sigma)
-
-            sin_alpha = math.cos(u1) * math.cos(u2) * math.sin(lambda_old) / sin_sigma
-            cos_sq_alpha = 1 - sin_alpha ** 2
-            cos_2sigma_m = cos_sigma - 2 * math.sin(u1) * math.sin(u2) / cos_sq_alpha
-            c = (
-                flattening
-                * cos_sq_alpha
-                * (4 + flattening * (4 - 3 * cos_sq_alpha))
-                / 16
-            )
-
-            t = sigma + c * sin_sigma * (
-                cos_2sigma_m + c * cos_sigma * (-1 + 2 * cos_2sigma_m ** 2)
-            )
-            lambda_new = long_diff + (1 - c) * flattening * sin_alpha * t
-            if abs(lambda_new - lambda_old) &lt;= tolerance:
-                break
-            else:
-                lambda_old = lambda_new
-
-        u2 = cos_sq_alpha * (
-            (earth_radius_equator ** 2 - earth_radius_poles ** 2)
-            / earth_radius_poles ** 2
-        )
-        A = 1 + (u2 / 16384) * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)))
-        B = (u2 / 1024) * (256 + u2 * (-128 + u2 * (74 - 47 * u2)))
-        t = cos_2sigma_m + 0.25 * B * (cos_sigma * (-1 + 2 * cos_2sigma_m ** 2))
-        t -= (
-            (B / 6)
-            * cos_2sigma_m
-            * (-3 + 4 * sin_sigma ** 2)
-            * (-3 + 4 * cos_2sigma_m ** 2)
-        )
-        delta_sigma = B * sin_sigma * t
-        distance = earth_radius_poles * A * (sigma - delta_sigma)
-
-    return distance</code></pre>
+    print(&#34;only accept numpy array, list and tuple&#34;)
+    return None</code></pre>
 </details>
 </dd>
 <dt id="geosardine.xy2rowcol"><code class="name flex">
@@ -663,7 +582,7 @@ nearest value
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\_geosardine.py#L13-L42" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\_geosardine.py#L13-L42" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def xy2rowcol(
     xy: Union[Tuple[float, float], List[float]],

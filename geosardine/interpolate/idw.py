@@ -145,6 +145,58 @@ def _idw_array(
     )
 
 
+def idw_single(
+    point: List[float],
+    known_coordinates: np.ndarray,
+    known_value: np.ndarray,
+    epsg: int = 4326,
+    longlat_distance: str = "harvesine",
+    power: Union[float, int] = 2,
+) -> float:
+    """
+
+    Parameters
+    ----------
+    point : list
+        list of single point to be interpolated
+    known_coordinates : numpy array
+        list of points coordinate as numpy array
+    known_value: numpy array
+        list of points value as numpy array, not needed if vector file used as input
+    epsg : int, default 4326
+        EPSG code of reference system  <br/>
+        * If 4326, WGS 1984 geographic system  <br/>
+        * If int, epsg will be parsed
+    longlat_distance: str harvesine or vincenty, default harvesine
+        method used to calculate distance in spherical / ellipsoidal  <br/>
+        * If harvesine, calculation will be faster but less accurate  <br/>
+        * If vincenty, calculation will be slower but more accurate
+    power: float, default 2
+        how smooth the interpolation will be
+
+    Returns
+    -------
+    float
+        interpolated value
+
+    """
+    if len(point) > 2:
+        raise ValueError("only for single point, input can't be more than 2 items")
+    crs = CRS.from_epsg(epsg)
+    distance_calculation = longlat_distance
+    if crs.is_projected:
+        distance_calculation = "projected"
+
+    interpolated = _idw(
+        known_coordinates,
+        known_value,
+        np.array([point]),
+        calc_distance[distance_calculation],
+        power,
+    )
+    return interpolated[0]
+
+
 @idw.register
 def _idw_file(
     file_name: str,

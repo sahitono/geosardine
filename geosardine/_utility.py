@@ -1,4 +1,5 @@
 import math
+from functools import singledispatch
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Union
 
@@ -47,20 +48,20 @@ def save_raster(
     print(f"{file_name} saved")
 
 
-@numba.njit()
+@singledispatch
 def harvesine_distance(
-    long_lat1: Union[Tuple[float, float], List[float]],
-    long_lat2: Union[Tuple[float, float], List[float]],
-) -> float:
+    long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
+    long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
+) -> Optional[float]:
     """
     Calculate distance in ellipsoid by harvesine method
     faster, less accurate
 
     Parameters
     ----------
-    long_lat1 : tuple, list
+    long_lat1 : tuple, list, numpy array
         first point coordinate in longitude, latitude
-    long_lat2 : tuple, list
+    long_lat2 : tuple, list, numpy array
         second point coordinate in longitude, latitude
 
     Returns
@@ -73,9 +74,16 @@ def harvesine_distance(
     https://rafatieppo.github.io/post/2018_07_27_idw2pyr/
     """
 
+    print("only accept numpy array, list and tuple")
+    return None
+
+
+@harvesine_distance.register(np.ndarray)
+@numba.njit()
+def _harvesine_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
     radians = math.pi / 180
-    long1, lat1 = np.radians(long_lat1)
-    long2, lat2 = np.radians(long_lat2)
+    long1, lat1 = long_lat1
+    long2, lat2 = long_lat2
 
     long1 *= radians
     long2 *= radians
@@ -94,11 +102,23 @@ def harvesine_distance(
     return distance
 
 
-@numba.njit()
+@harvesine_distance.register(list)
+def __harvesine_distance(long_lat1: List[float], long_lat2: List[float]):
+    return _harvesine_distance(np.array(long_lat1), np.array(long_lat2))
+
+
+@harvesine_distance.register(tuple)
+def __harvesine_distance(
+    long_lat1: Tuple[float, float], long_lat2: Tuple[float, float]
+):
+    return _harvesine_distance(np.array(long_lat1), np.array(long_lat2))
+
+
+@singledispatch
 def vincenty_distance(
-    long_lat1: Union[Tuple[float, float], List[float]],
-    long_lat2: Union[Tuple[float, float], List[float]],
-) -> float:
+    long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
+    long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
+) -> Optional[float]:
     """
     Calculate distance in ellipsoid by vincenty method
     slower, more accurate
@@ -119,14 +139,28 @@ def vincenty_distance(
     https://www.johndcook.com/blog/2018/11/24/spheroid-distance/
     """
 
+    print("only accept numpy array, list and tuple")
+    return None
+
+
+@vincenty_distance.register(np.ndarray)
+@numba.njit()
+def _vincenty_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
     # WGS 1984
     earth_radius_equator = 6378137.0  # equatorial radius in meters
     flattening = 1 / 298.257223563
     earth_radius_poles = (1 - flattening) * earth_radius_equator
     tolerance = 1e-11  # to stop iteration
 
+    radians = math.pi / 180
     long1, lat1 = long_lat1
     long2, lat2 = long_lat2
+
+    long1 *= radians
+    long2 *= radians
+    lat1 *= radians
+    lat2 *= radians
+
     distance = 0.0
 
     if long1 != long2 and lat1 != lat2:
@@ -187,6 +221,16 @@ def vincenty_distance(
     return distance
 
 
+@vincenty_distance.register(list)
+def __vincenty_distance(long_lat1: List[float], long_lat2: List[float]):
+    return _vincenty_distance(np.array(long_lat1), np.array(long_lat2))
+
+
+@vincenty_distance.register(tuple)
+def __vincenty_distance(long_lat1: Tuple[float, float], long_lat2: Tuple[float, float]):
+    return _vincenty_distance(np.array(long_lat1), np.array(long_lat2))
+
+
 @numba.njit()
 def projected_distance(
     xy1: Union[Tuple[float, float], List[float]],
@@ -202,7 +246,7 @@ def calc_extent(points: np.ndarray) -> Tuple[float, float, float, float]:
 
 
 calc_distance = {
-    "harvesine": harvesine_distance,
-    "vincenty": vincenty_distance,
+    "harvesine": _harvesine_distance,
+    "vincenty": _vincenty_distance,
     "projected": projected_distance,
 }

@@ -25,12 +25,12 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\interpolate\__init__.py#L0-L3" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\__init__.py#L0-L3" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">from ._utility import InterpolationResult
-from .idw import idw
+from .idw import idw, idw_single
 
-__all__ = [&#34;idw&#34;, &#34;InterpolationResult&#34;]</code></pre>
+__all__ = [&#34;idw&#34;, &#34;idw_single&#34;, &#34;InterpolationResult&#34;]</code></pre>
 </details>
 </section>
 <section>
@@ -94,7 +94,7 @@ i.e shapefile or geojson
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\interpolate\idw.py#L39-L89" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\idw.py#L39-L89" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@singledispatch
 def idw(
@@ -147,6 +147,95 @@ def idw(
     &#34;&#34;&#34;
     print(&#34;only support numpy array or vector file such as shapefile and geojson&#34;)
     return None</code></pre>
+</details>
+</dd>
+<dt id="geosardine.interpolate.idw_single"><code class="name flex">
+<span>def <span class="ident">idw_single</span></span>(<span>point: List[float], known_coordinates: numpy.ndarray, known_value: numpy.ndarray, epsg: int = 4326, longlat_distance: str = 'harvesine', power: Union[float, int] = 2) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>point</code></strong> :&ensp;<code>list</code></dt>
+<dd>list of single point to be interpolated</dd>
+<dt><strong><code>known_coordinates</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>list of points coordinate as numpy array</dd>
+<dt><strong><code>known_value</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>list of points value as numpy array, not needed if vector file used as input</dd>
+<dt><strong><code>epsg</code></strong> :&ensp;<code>int</code>, default <code>4326</code></dt>
+<dd>EPSG code of reference system
+<br/>
+* If 4326, WGS 1984 geographic system
+<br/>
+* If int, epsg will be parsed</dd>
+<dt><strong><code>longlat_distance</code></strong> :&ensp;<code>str harvesine</code> or <code>vincenty</code>, default <code>harvesine</code></dt>
+<dd>method used to calculate distance in spherical / ellipsoidal
+<br/>
+* If harvesine, calculation will be faster but less accurate
+<br/>
+* If vincenty, calculation will be slower but more accurate</dd>
+<dt><strong><code>power</code></strong> :&ensp;<code>float</code>, default <code>2</code></dt>
+<dd>how smooth the interpolation will be</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>interpolated value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\idw.py#L148-L197" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def idw_single(
+    point: List[float],
+    known_coordinates: np.ndarray,
+    known_value: np.ndarray,
+    epsg: int = 4326,
+    longlat_distance: str = &#34;harvesine&#34;,
+    power: Union[float, int] = 2,
+) -&gt; float:
+    &#34;&#34;&#34;
+
+    Parameters
+    ----------
+    point : list
+        list of single point to be interpolated
+    known_coordinates : numpy array
+        list of points coordinate as numpy array
+    known_value: numpy array
+        list of points value as numpy array, not needed if vector file used as input
+    epsg : int, default 4326
+        EPSG code of reference system  &lt;br/&gt;
+        * If 4326, WGS 1984 geographic system  &lt;br/&gt;
+        * If int, epsg will be parsed
+    longlat_distance: str harvesine or vincenty, default harvesine
+        method used to calculate distance in spherical / ellipsoidal  &lt;br/&gt;
+        * If harvesine, calculation will be faster but less accurate  &lt;br/&gt;
+        * If vincenty, calculation will be slower but more accurate
+    power: float, default 2
+        how smooth the interpolation will be
+
+    Returns
+    -------
+    float
+        interpolated value
+
+    &#34;&#34;&#34;
+    if len(point) &gt; 2:
+        raise ValueError(&#34;only for single point, input can&#39;t be more than 2 items&#34;)
+    crs = CRS.from_epsg(epsg)
+    distance_calculation = longlat_distance
+    if crs.is_projected:
+        distance_calculation = &#34;projected&#34;
+
+    interpolated = _idw(
+        known_coordinates,
+        known_value,
+        np.array([point]),
+        calc_distance[distance_calculation],
+        power,
+    )
+    return interpolated[0]</code></pre>
 </details>
 </dd>
 </dl>
@@ -206,7 +295,7 @@ x min, y min, x max, y max <br/>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\interpolate\_utility.py#L11-L95" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\_utility.py#L11-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class InterpolationResult:
     &#34;&#34;&#34;
@@ -316,7 +405,7 @@ will only work if source is not None
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81874762d12c7332aeaa4621a85df3e4c0c8bf80/geosardine\interpolate\_utility.py#L75-L95" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\_utility.py#L75-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save(self, location: Optional[Union[str, Path]] = None) -&gt; None:
     &#34;&#34;&#34;
@@ -360,6 +449,7 @@ will only work if source is not None
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="geosardine.interpolate.idw" href="#geosardine.interpolate.idw">idw</a></code></li>
+<li><code><a title="geosardine.interpolate.idw_single" href="#geosardine.interpolate.idw_single">idw_single</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

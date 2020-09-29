@@ -2,6 +2,11 @@
 ![python package](https://github.com/sahitono/geosardine/workflows/python%20package/badge.svg)
 [![codecov](https://codecov.io/gh/sahitono/geosardine/branch/master/graph/badge.svg)](https://codecov.io/gh/sahitono/geosardine)
 
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/geosardine)
+![PyPI](https://img.shields.io/pypi/v/geosardine)
+![Conda](https://img.shields.io/conda/v/sahitono/geosardine)
+
+Spatial operations extend fiona and rasterio.
 Collection of spatial operation which i occasionally use written in python:
  - Interpolation with IDW (Inverse Distance Weighting) Shepard
  - Drape vector to raster

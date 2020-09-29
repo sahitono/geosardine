@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "geosardine"
-version = "0.5.0"
+version = "0.6.0"
 license = "BSD-3-Clause"
 description = "Spatial operations extend fiona and rasterio"
 authors = ["Sahit Tuntas Sadono <26474008+sahitono@users.noreply.github.com>"]
@@ -37,6 +37,11 @@ pytest-cov = "^2.10.1"
 
 [tool.poetry.scripts]
 dine = 'geosardine.__main__:main'
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error::UserWarning",
+]
 
 [build-system]
 requires = ["poetry>=1.0.3", "pip>=20.0.0"]
