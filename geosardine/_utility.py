@@ -99,7 +99,7 @@ def _harvesine_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
     )
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     distance = earth_radius_equator * c
-    return distance
+    return np.abs(distance)
 
 
 @harvesine_distance.register(list)
@@ -218,7 +218,7 @@ def _vincenty_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
         delta_sigma = B * sin_sigma * t
         distance = earth_radius_poles * A * (sigma - delta_sigma)
 
-    return distance
+    return np.abs(distance)
 
 
 @vincenty_distance.register(list)

@@ -6,7 +6,7 @@ import fiona
 import rasterio
 from tqdm.autonotebook import tqdm
 
-from geosardine._geosardine import spatial_join, drape_geojson
+from geosardine._geosardine import drape_geojson, spatial_join
 from geosardine.interpolate import idw
 
 
@@ -71,14 +71,20 @@ def drape(target, raster):
 @click.option("--output", type=click.Path(), default=None, help="output location")
 @click.argument("resolution", type=float)
 @click.option("--column", type=str, default=None, help="column name of points")
-def idw_cli(points: Path, output, resolution, column):
+@click.option("--distance_limit", type=float, default=0.0, help="column name of points")
+def idw_cli(points: Path, output, resolution, column, distance_limit):
     """
     Create raster from POINTS with defined RESOLUTION
     by Inverse Distance Weighting interpolation
     """
     points = Path(points)
     print("Running...")
-    interpolation = idw(points, (resolution, resolution), column_name=column)
+    interpolation = idw(
+        points,
+        (resolution, resolution),
+        column_name=column,
+        distance_limit=distance_limit,
+    )
     interpolation.save(output)
 
 

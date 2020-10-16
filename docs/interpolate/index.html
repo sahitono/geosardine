@@ -25,7 +25,7 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\__init__.py#L0-L3" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/b4824707b41cab9ac73e005af02339a63ca89bd5/geosardine\interpolate\__init__.py#L0-L3" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">from ._utility import InterpolationResult
 from .idw import idw, idw_single
@@ -41,7 +41,7 @@ __all__ = [&#34;idw&#34;, &#34;idw_single&#34;, &#34;InterpolationResult&#34;]</
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geosardine.interpolate.idw"><code class="name flex">
-<span>def <span class="ident">idw</span></span>(<span>points: Union[str, numpy.ndarray], value: numpy.ndarray, spatial_res: Tuple[float, float], epsg: int = 4326, column_name: Union[str, NoneType] = None, longlat_distance: str = 'harvesine', extent: Union[Tuple[float, float, float, float], NoneType] = None, power: Union[float, int] = 2) ‑> Union[geosardine.interpolate._utility.InterpolationResult, NoneType]</span>
+<span>def <span class="ident">idw</span></span>(<span>points: Union[str, numpy.ndarray], value: numpy.ndarray, spatial_res: Tuple[float, float], epsg: int = 4326, column_name: Union[str, NoneType] = None, longlat_distance: str = 'harvesine', extent: Union[Tuple[float, float, float, float], NoneType] = None, power: Union[float, int] = 2, distance_limit: float = 0.0) ‑> Union[geosardine.interpolate._utility.InterpolationResult, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>create interpolated raster from point by using Inverse Distance Weighting (Shepard)</p>
@@ -85,16 +85,39 @@ i.e shapefile or geojson
 * If tuple of float, user input of extent will be used</dd>
 <dt><strong><code>power</code></strong> :&ensp;<code>float</code>, default <code>2</code></dt>
 <dd>how smooth the interpolation will be</dd>
+<dt><strong><code>distance_limit</code></strong> :&ensp;<code>float</code>, default <code>0</code></dt>
+<dd>maximum distance to be interpolated, can't be negative</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code><a title="geosardine.interpolate.InterpolationResult" href="#geosardine.interpolate.InterpolationResult">InterpolationResult</a></code></dt>
 <dd>&nbsp;</dd>
-</dl></div>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; xy = np.array([[106.8358,  -6.585 ],
+...     [106.6039,  -6.7226],
+...     [106.7589,  -6.4053],
+...     [106.9674,  -6.7092],
+...     [106.7956,  -6.5988]
+... ])
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; values = np.array([132., 127.,  37.,  90., 182.])
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; idw(xy, values, spatial_res=(0.01,0.01), epsg=4326)
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; print(interpolated.array)
+[[ 88.63769859  86.24219616  83.60463194 ... 101.98185127 103.37001289 104.54621272]
+ [ 90.12053232  87.79279317  85.22030848 ... 103.77118852 105.01425289 106.05302554]
+ [ 91.82987695  89.60855271  87.14722258 ... 105.70090081 106.76928067 107.64635337]
+ ...
+ [127.21214817 127.33208302 127.53878268 ...  97.80436475  94.96247196 93.12113458]
+ [127.11315081 127.18465002 127.33444124 ...  95.86455668  93.19212577 91.51135399]
+ [127.0435062  127.0827023  127.19214624 ...  94.80175756  92.30685734 90.75707134]]
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\idw.py#L39-L89" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/b4824707b41cab9ac73e005af02339a63ca89bd5/geosardine\interpolate\idw.py#L40-L115" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@singledispatch
 def idw(
@@ -106,6 +129,7 @@ def idw(
     longlat_distance: str = &#34;harvesine&#34;,
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
+    distance_limit: float = 0.0,
 ) -&gt; Optional[InterpolationResult]:
     &#34;&#34;&#34;
     create interpolated raster from point by using Inverse Distance Weighting (Shepard)
@@ -139,18 +163,42 @@ def idw(
         * If tuple of float, user input of extent will be used
     power: float, default 2
         how smooth the interpolation will be
+    distance_limit: float, default 0
+        maximum distance to be interpolated, can&#39;t be negative
 
     Returns
     -------
     InterpolationResult
 
+    Examples
+    --------
+
+    &gt;&gt;&gt; xy = np.array([[106.8358,  -6.585 ],
+    ...     [106.6039,  -6.7226],
+    ...     [106.7589,  -6.4053],
+    ...     [106.9674,  -6.7092],
+    ...     [106.7956,  -6.5988]
+    ... ])
+
+    &gt;&gt;&gt; values = np.array([132., 127.,  37.,  90., 182.])
+
+    &gt;&gt;&gt; idw(xy, values, spatial_res=(0.01,0.01), epsg=4326)
+
+    &gt;&gt;&gt; print(interpolated.array)
+    [[ 88.63769859  86.24219616  83.60463194 ... 101.98185127 103.37001289 104.54621272]
+     [ 90.12053232  87.79279317  85.22030848 ... 103.77118852 105.01425289 106.05302554]
+     [ 91.82987695  89.60855271  87.14722258 ... 105.70090081 106.76928067 107.64635337]
+     ...
+     [127.21214817 127.33208302 127.53878268 ...  97.80436475  94.96247196 93.12113458]
+     [127.11315081 127.18465002 127.33444124 ...  95.86455668  93.19212577 91.51135399]
+     [127.0435062  127.0827023  127.19214624 ...  94.80175756  92.30685734 90.75707134]]
     &#34;&#34;&#34;
     print(&#34;only support numpy array or vector file such as shapefile and geojson&#34;)
     return None</code></pre>
 </details>
 </dd>
 <dt id="geosardine.interpolate.idw_single"><code class="name flex">
-<span>def <span class="ident">idw_single</span></span>(<span>point: List[float], known_coordinates: numpy.ndarray, known_value: numpy.ndarray, epsg: int = 4326, longlat_distance: str = 'harvesine', power: Union[float, int] = 2) ‑> float</span>
+<span>def <span class="ident">idw_single</span></span>(<span>point: List[float], known_coordinates: numpy.ndarray, known_value: numpy.ndarray, epsg: int = 4326, longlat_distance: str = 'harvesine', power: Union[float, int] = 2, distance_limit: float = 0.0) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="parameters">Parameters</h2>
@@ -175,16 +223,32 @@ def idw(
 * If vincenty, calculation will be slower but more accurate</dd>
 <dt><strong><code>power</code></strong> :&ensp;<code>float</code>, default <code>2</code></dt>
 <dd>how smooth the interpolation will be</dd>
+<dt><strong><code>distance_limit</code></strong> :&ensp;<code>float</code>, default <code>0</code></dt>
+<dd>maximum distance to be interpolated, can't be negative</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
 <dd>interpolated value</dd>
-</dl></div>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from geosardine.interpolate import idw_single
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; result = idw_single(
+...     [860209, 9295740],
+...     np.array([[767984, 9261620], [838926, 9234594]]),
+...     np.array([[101.1, 102.2]]),
+...     epsg=32748,
+...     distance_limit=0
+... )
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; print(result)
+101.86735169471324
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\idw.py#L148-L197" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/b4824707b41cab9ac73e005af02339a63ca89bd5/geosardine\interpolate\idw.py#L180-L248" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def idw_single(
     point: List[float],
@@ -193,6 +257,7 @@ def idw(
     epsg: int = 4326,
     longlat_distance: str = &#34;harvesine&#34;,
     power: Union[float, int] = 2,
+    distance_limit: float = 0.0,
 ) -&gt; float:
     &#34;&#34;&#34;
 
@@ -214,11 +279,28 @@ def idw(
         * If vincenty, calculation will be slower but more accurate
     power: float, default 2
         how smooth the interpolation will be
+    distance_limit: float, default 0
+        maximum distance to be interpolated, can&#39;t be negative
 
     Returns
     -------
     float
         interpolated value
+
+    Examples
+    --------
+    &gt;&gt;&gt; from geosardine.interpolate import idw_single
+
+    &gt;&gt;&gt; result = idw_single(
+    ...     [860209, 9295740],
+    ...     np.array([[767984, 9261620], [838926, 9234594]]),
+    ...     np.array([[101.1, 102.2]]),
+    ...     epsg=32748,
+    ...     distance_limit=0
+    ... )
+
+    &gt;&gt;&gt; print(result)
+    101.86735169471324
 
     &#34;&#34;&#34;
     if len(point) &gt; 2:
@@ -234,6 +316,7 @@ def idw(
         np.array([point]),
         calc_distance[distance_calculation],
         power,
+        distance_limit,
     )
     return interpolated[0]</code></pre>
 </details>
@@ -295,7 +378,7 @@ x min, y min, x max, y max <br/>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\_utility.py#L11-L95" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/b4824707b41cab9ac73e005af02339a63ca89bd5/geosardine\interpolate\_utility.py#L11-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class InterpolationResult:
     &#34;&#34;&#34;
@@ -405,7 +488,7 @@ will only work if source is not None
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1d33826e5bc52fa94681e0a35460eaece1c2289d/geosardine\interpolate\_utility.py#L75-L95" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/b4824707b41cab9ac73e005af02339a63ca89bd5/geosardine\interpolate\_utility.py#L75-L95" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save(self, location: Optional[Union[str, Path]] = None) -&gt; None:
     &#34;&#34;&#34;
