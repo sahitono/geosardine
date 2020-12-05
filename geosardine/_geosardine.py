@@ -288,12 +288,6 @@ def spatial_join(
         geojson
 
     """
-    """
-    Join attribute from 2 vector by location.
-    :param target: Vector target to be joined. [fiona.Collection]
-    :param join:
-    :return:
-    """
     try:
         joined_schema_prop = OrderedDict(
             **target.schema["properties"], **join.schema["properties"]

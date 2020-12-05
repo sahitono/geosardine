@@ -10,7 +10,8 @@ from ._geosardine import (
     spatial_join,
     xy2rowcol,
 )
-from ._utility import harvesine_distance, save_raster, vincenty_distance
+from ._utility import harvesine_distance, vincenty_distance
+from .raster import Raster
 
 __all__ = [
     "rowcol2xy",
@@ -22,7 +23,8 @@ __all__ = [
     "interpolate",
     "harvesine_distance",
     "vincenty_distance",
+    "Raster",
 ]
 
-__version__ = "0.6.0"
+__version__ = "0.8.0"
 __author__ = "Sahit Tuntas Sadono"

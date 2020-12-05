@@ -78,8 +78,55 @@ print(interpolated.array)
 """
 
 
+```
+
+
+## Raster Wrapper
+Geosardine include wrapper for raster data. The benefit are:
+1. math operation (addition, subtraction, division, multiplication) between rasters of different size, resolution and reference system.
+   The data type result is equal to the first raster data type
+
+   for example:
+   
+   raster1 = float32 and raster2 = int32
+
+   raster3 = raster1 - raster2
+   
+   raster3 will be float32
+2. resample (nearest neighbor)
+3. resize (nearest neighbor)
+```python
+from geosardine import Raster
+
+
+"""
+minimum parameter needed to create raster are 
+1. 2D numpy array, example: np.ones(18, dtype=np.float32).reshape(3, 3, 2)
+2. spatial resolution, example:  0.4 or ( 0.4,  0.4)
+3. left coordinate / x minimum
+3. bottom coordinate / y minimum
+"""
+raster1 = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), 0.4, 120, 0.7)
+
+## resample
+resampled = raster.resample((0.2,0.2))
+## resize
+resized = raster.resize(height=16, width=16)
+
+## math operation between raster
+raster_2 = raster + resampled
+raster_2 = raster - resampled
+raster_2 = raster * resampled
+raster_2 = raster / resampled
+
+## math operation raster to number
+raster_3 = raster + 2
+raster_3 = raster - 2
+raster_3 = raster * 2
+raster_3 = raster / 2
 
 ```
+
 
 
 ## Geosardine CLI

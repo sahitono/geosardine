@@ -3,9 +3,8 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 from affine import Affine
-from rasterio.crs import CRS
-
 from geosardine._utility import calc_affine, calc_extent, save_raster
+from rasterio.crs import CRS
 
 
 class InterpolationResult:

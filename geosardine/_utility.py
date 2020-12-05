@@ -25,6 +25,12 @@ def save_raster(
     affine: Optional[Affine] = None,
 ):
     height, width = value_array.shape
+    layers = 1
+    if len(value_array.shape) == 3:
+        height, width, layers = value_array.shape
+    if layers == 1:
+        value_array = value_array.reshape(height, width, layers)
+
     if affine is None:
         if coordinate_array is None:
             raise ValueError("please, provide array of coordinate per pixel")
@@ -39,12 +45,13 @@ def save_raster(
         driver="GTiff",
         height=height,
         width=width,
-        count=1,
+        count=layers + 1,
         dtype=value_array.dtype,
         crs=crs,
         transform=affine,
     ) as raster:
-        raster.write(value_array, 1)
+        for layer in range(layers):
+            raster.write(value_array[:, :, layer], layer + 1)
     print(f"{file_name} saved")
 
 

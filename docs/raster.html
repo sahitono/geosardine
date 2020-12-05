@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>geosardine API documentation</title>
-<meta name="description" content="Spatial operations extend fiona and rasterio" />
+<title>geosardine.raster API documentation</title>
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -19,609 +19,361 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>geosardine</code></h1>
+<h1 class="title">Module <code>geosardine.raster</code></h1>
 </header>
 <section id="section-intro">
-<p>Spatial operations extend fiona and rasterio</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\__init__.py#L0-L29" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\raster.py#L0-L334" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
-Spatial operations extend fiona and rasterio
-&#34;&#34;&#34;
-from . import interpolate
-from ._geosardine import (
-    drape2raster,
-    drape_geojson,
-    drape_shapely,
-    rowcol2xy,
-    spatial_join,
-    xy2rowcol,
-)
-from ._utility import harvesine_distance, vincenty_distance
-from .raster import Raster
+<pre><code class="python">from dataclasses import dataclass
+from math import floor
+from operator import add, iadd, imul, ipow, isub, itruediv, mul, pow, sub, truediv
+from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
 
-__all__ = [
-    &#34;rowcol2xy&#34;,
-    &#34;xy2rowcol&#34;,
-    &#34;drape2raster&#34;,
-    &#34;spatial_join&#34;,
-    &#34;drape_shapely&#34;,
-    &#34;drape_geojson&#34;,
-    &#34;interpolate&#34;,
-    &#34;harvesine_distance&#34;,
-    &#34;vincenty_distance&#34;,
-    &#34;Raster&#34;,
-]
+import numpy as np
+from affine import Affine
+from rasterio.crs import CRS
 
-__version__ = &#34;0.7.0&#34;
-__author__ = &#34;Sahit Tuntas Sadono&#34;</code></pre>
-</details>
-</section>
-<section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<dt><code class="name"><a title="geosardine.interpolate" href="interpolate/index.html">geosardine.interpolate</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="geosardine.raster" href="raster.html">geosardine.raster</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="geosardine.drape2raster"><code class="name flex">
-<span>def <span class="ident">drape2raster</span></span>(<span>xy: List[float], dsm_array: numpy.ndarray, affine: affine.Affine, interpolate: bool = False, no_data: Union[float, int] = -32767) ‑> Tuple[float, float, float]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Find Z of 2D coordinate
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>xy</code></strong> :&ensp;<code>tuple, list, numpy array</code></dt>
-<dd>2D coordinate x,y</dd>
-<dt><strong><code>dsm_array</code></strong> :&ensp;<code>numpy array</code></dt>
-<dd>height array</dd>
-<dt><strong><code>affine</code></strong> :&ensp;<code>Affine</code></dt>
-<dd>affine parameter from rasterio.transform
-or create it with affine.Affine <a href="https://pypi.org/project/affine/">https://pypi.org/project/affine/</a></dd>
-<dt><strong><code>interpolate</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
-<dd>choose to interpolate or not
-* if True, value will be interpolated from
-nearest value
-* if False, value will be obtained from exact row and column</dd>
-<dt><strong><code>no_data</code></strong> :&ensp;<code>float, int</code>, default <code>-32767</code></dt>
-<dd>value for pixel with no data</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>tuple</code></dt>
-<dd>3D coordinate</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\_geosardine.py#L106-L147" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def drape2raster(
-    xy: List[float],
-    dsm_array: np.ndarray,
-    affine: Affine,
-    interpolate: bool = False,
-    no_data: Union[float, int] = -32767,
-) -&gt; Tuple[float, float, float]:
-    &#34;&#34;&#34;
-    Find Z of 2D coordinate
-    Parameters
-    ----------
-    xy : tuple, list, numpy array
-        2D coordinate x,y
-    dsm_array : numpy array
-        height array
-    affine : Affine
-        affine parameter from rasterio.transform
-        or create it with affine.Affine https://pypi.org/project/affine/
-    interpolate : bool, default True
-        choose to interpolate or not
-        * if True, value will be interpolated from  nearest value
-        * if False, value will be obtained from exact row and column
-    no_data : float, int, default -32767
-        value for pixel with no data
+from geosardine._geosardine import rowcol2xy, xy2rowcol
+from geosardine._utility import save_raster
 
-    Returns
-    -------
-    tuple
-        3D coordinate
 
-    &#34;&#34;&#34;
-    x, y = xy
-    row, col = xy2rowcol(xy, affine, interpolate)
-    if interpolate:
-        draped_z = _d2r_interpolate((row, col), dsm_array, no_data)
-    else:
-        try:
-            draped_z = dsm_array[row, col]
-        except IndexError:
-            warnings.warn(f&#34;Point is out of bound, returning no data: {no_data}&#34;)
-            draped_z = no_data
-    return x, y, draped_z</code></pre>
-</details>
-</dd>
-<dt id="geosardine.drape_geojson"><code class="name flex">
-<span>def <span class="ident">drape_geojson</span></span>(<span>features: Union[Iterable[Dict], fiona.collection.Collection], raster: rasterio.io.DatasetReader, interpolate: bool = False) ‑> Generator[Dict, NoneType, NoneType]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Drape with geojson as input, fiona uses geojson as interface.
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>features</code></strong> :&ensp;<code>Iterable[Dict], fiona.Collection</code></dt>
-<dd>vector as geojson</dd>
-<dt><strong><code>raster</code></strong> :&ensp;<code>rasterio.io.DatasetReader</code></dt>
-<dd>rasterio reader of raster file</dd>
-<dt><strong><code>interpolate</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
-<dd>choose to interpolate or not
-* if True, value will be interpolated from
-nearest value
-* if False, value will be obtained from exact row and column</dd>
-</dl>
-<h2 id="yields">Yields</h2>
-<dl>
-<dt><code>dict</code></dt>
-<dd>geojson</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\_geosardine.py#L216-L270" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def drape_geojson(
-    features: Union[Iterable[Dict], fiona.Collection],
-    raster: rasterio.io.DatasetReader,
-    interpolate: bool = False,
-) -&gt; Generator[Dict, None, None]:
-    &#34;&#34;&#34;
-    Drape with geojson as input, fiona uses geojson as interface.
-    Parameters
-    ----------
-    features : Iterable[Dict], fiona.Collection
-        vector as geojson
-    raster : rasterio.io.DatasetReader
-        rasterio reader of raster file
-    interpolate : bool, default True
-        choose to interpolate or not
-        * if True, value will be interpolated from  nearest value
-        * if False, value will be obtained from exact row and column
+class Raster(np.ndarray):
+    def __init__(
+        self,
+        array: np.ndarray,
+        resolution: Union[
+            None, Tuple[float, float], List[float], Tuple[float, ...], float
+        ] = None,
+        x_min: Optional[float] = None,
+        y_min: Optional[float] = None,
+        x_max: Optional[float] = None,
+        y_max: Optional[float] = None,
+        epsg: int = 4326,
+    ):
+        &#34;&#34;&#34;
+        Construct Raster from numpy array with spatial information.
+        Support calculation between different raster
 
-    Yields
-    -------
-    dict
-        geojson
+        Parameters
+        ----------
+        array : numpy array
+            array of raster
+        resolution : tuple, list, default None
+            spatial resolution
+        x_min : float, defaults to None
+            left boundary of x-axis coordinate
+        y_min : float, defaults to None
+            bottom boundary of y-axis coordinate
+        x_max : float, defaults to None
+            right boundary of x-axis coordinate
+        y_max : float, defaults to None
+            upper boundary of y-axis coordinate
+        epsg : int, defaults to 4326
+            EPSG code of reference system
 
-    &#34;&#34;&#34;
-    &#34;&#34;&#34;
-    Drape with geojson as input, fiona uses geojson as interface.
-    :param features: geojson
-    :param raster: rasterio dataset reader
-    :param interpolate:
-    :return:
-    &#34;&#34;&#34;
-    dsm_array = raster.read(1)
-    affine = raster.transform
-    no_data = raster.nodatavals
-    for i, feature in enumerate(features):
-        draped_feature = feature.copy()
-        geometry: Dict = feature[&#34;geometry&#34;]
-        geom_type: str = geometry[&#34;type&#34;]
+        Raises
+        ------
+        ValueError
+            [description]
+        ValueError
+            [description]
 
-        draped_coordinates: Union[List[List[float]], List[List[List[float]]]] = []
-        if geom_type == &#34;Polygon&#34;:
-            draped_coordinates = [
-                list(drape_coordinates(ring, dsm_array, affine, interpolate, no_data))
-                for ring in geometry
-            ]
+        Examples
+        --------
+        &gt;&gt;&gt; from geosardine import Raster
 
-        elif geom_type == &#34;LineString&#34;:
-            draped_coordinates = list(
-                drape_coordinates(geometry, dsm_array, affine, interpolate, no_data)
+        &gt;&gt;&gt; raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), 0.4, 120, 0.7)
+
+        &gt;&gt;&gt; print(raster)
+        [[[1. 1.]
+          [1. 1.]
+          [1. 1.]]
+
+         [[1. 1.]
+          [1. 1.]
+          [1. 1.]]
+
+         [[1. 1.]
+          [1. 1.]
+          [1. 1.]]]
+
+
+        Raster can be resampled like this. (0.2,0.2) is the result&#39;s spatial resolution
+        &gt;&gt;&gt; resampled = raster.resample((0.2,0.2))
+        &gt;&gt;&gt; print(resampled.shape, resampled.resolution)
+        (6, 6, 2) (0.2, 0.2)
+
+
+        Raster can be resized
+        &gt;&gt;&gt; resized = raster.resize(height=16, width=16)
+        &gt;&gt;&gt; print(resized.shape, resized.resolution)
+        (16, 16, 2) (0.07500000000000018, 0.07500000000000001)
+        &#34;&#34;&#34;
+        if (
+            resolution is None
+            and x_min is None
+            and y_min is None
+            and x_max is None
+            and y_max is None
+        ):
+            raise ValueError(
+                &#34;Please define resolution and at least x minimum and y minimum&#34;
             )
+
+        if resolution is not None and x_min is None and y_min is None:
+            raise ValueError(&#34;Please at least define x_min and y_min&#34;)
+
+        if isinstance(resolution, float):
+            self.resolution: Tuple[float, float] = (
+                resolution,
+                resolution,
+            )
+        elif resolution is not None and isinstance(resolution, Iterable):
+            self.resolution = (resolution[0], resolution[1])
+
+        if resolution is not None and x_min is not None and y_min is not None:
+            self.x_min: float = x_min
+            self.y_min: float = y_min
+            self.x_max: float = x_min + (self.resolution[0] * array.shape[1])
+            self.y_max: float = y_min + (self.resolution[1] * array.shape[0])
+        elif (
+            resolution is None
+            and x_min is not None
+            and y_min is not None
+            and x_max is not None
+            and y_max is not None
+        ):
+            self.resolution = (
+                (x_max - x_min) / array.shape[1],
+                (y_max - y_min) / array.shape[0],
+            )
+            self.x_min = x_min
+            self.y_min = y_min
+            self.x_max = x_max
+            self.y_max = y_max
+
+        self.array = array
+        self.epsg = epsg
+        self.transform = Affine.translation(self.x_min, self.y_min) * Affine.scale(
+            self.resolution[0], -self.resolution[1]
+        )
+        self.crs = CRS.from_epsg(epsg)
+
+    def __new__(cls, array: np.ndarray, *args, **kwargs) -&gt; &#34;Raster&#34;:
+        return array.view(cls)
+
+    @property
+    def rows(self) -&gt; int:
+        return int(self.array.shape[0])
+
+    @property
+    def cols(self) -&gt; int:
+        return int(self.array.shape[1])
+
+    @property
+    def layers(self) -&gt; int:
+        _layers = 1
+        if len(self.array.shape) &gt; 2:
+            _layers = self.array.shape[2]
+        return _layers
+
+    @property
+    def x_extent(self) -&gt; float:
+        return self.x_max - self.x_min
+
+    @property
+    def y_extent(self) -&gt; float:
+        return self.y_max - self.y_min
+
+    @property
+    def is_projected(self) -&gt; bool:
+        return self.crs.is_projected
+
+    @property
+    def is_geographic(self) -&gt; bool:
+        return self.crs.is_geographic
+
+    def xy_value(self, x: float, y: float) -&gt; Union[float, int, np.ndarray]:
+        return self.array[xy2rowcol((x, y), self.transform)]
+
+    def rowcol2xy(self, row: int, col: int) -&gt; Tuple[float, float]:
+        return rowcol2xy((row, col), self.transform)
+
+    def xy2rowcol(self, x: float, y: float) -&gt; Tuple[int, int]:
+        _row, _col = xy2rowcol((x, y), self.transform)
+        return int(_row), int(_col)
+
+    def __raster_calculation__(
+        self,
+        raster: Union[int, float, &#34;Raster&#34;],
+        operator: Callable[[Any, Any], Any],
+    ) -&gt; &#34;Raster&#34;:
+        if not isinstance(raster, (int, float, Raster)):
+            raise ValueError(f&#34;{type(raster)} unsupported data format&#34;)
+
+        if isinstance(raster, Raster):
+            _raster = np.zeros(self.array.shape, dtype=self.array.dtype)
+            for row in range(self.rows):
+                for col in range(self.cols):
+                    _raster[row, col] = operator(
+                        self.array[row, col], raster.xy_value(*self.rowcol2xy(row, col))
+                    )
         else:
-            raise ValueError(&#34;Unsupported geometry type&#34;)
+            _raster = operator(self.array, raster)
 
-        draped_feature[&#34;geometry&#34;][&#34;coordinates&#34;] = draped_coordinates
-        yield draped_feature</code></pre>
-</details>
-</dd>
-<dt id="geosardine.drape_shapely"><code class="name flex">
-<span>def <span class="ident">drape_shapely</span></span>(<span>geometry: Union[shapely.geometry.polygon.Polygon, shapely.geometry.linestring.LineString], raster: rasterio.io.DatasetReader, interpolate: bool = False) ‑> Union[shapely.geometry.polygon.Polygon, shapely.geometry.linestring.LineString]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Drape with shapely geometry as input
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>geometry</code></strong> :&ensp;<code>shapely polygon, shapely linestring</code></dt>
-<dd>vector data as shapely object, currently only support polygon or linestring</dd>
-<dt><strong><code>raster</code></strong> :&ensp;<code>rasterio.io.DatasetReader</code></dt>
-<dd>rasterio reader of raster file</dd>
-<dt><strong><code>interpolate</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
-<dd>choose to interpolate or not
-* if True, value will be interpolated from
-nearest value
-* if False, value will be obtained from exact row and column</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>shapely.Polygon</code> or <code>shapely.LineString</code></dt>
-<dd>&nbsp;</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\_geosardine.py#L161-L213" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def drape_shapely(
-    geometry: Union[Polygon, LineString],
-    raster: rasterio.io.DatasetReader,
-    interpolate: bool = False,
-) -&gt; Union[Polygon, LineString]:
-    &#34;&#34;&#34;
-    Drape with shapely geometry as input
-    Parameters
-    ----------
-    geometry : shapely polygon, shapely linestring
-        vector data as shapely object, currently only support polygon or linestring
-    raster : rasterio.io.DatasetReader
-        rasterio reader of raster file
-    interpolate : bool, default True
-        choose to interpolate or not
-        * if True, value will be interpolated from  nearest value
-        * if False, value will be obtained from exact row and column
+        return Raster(_raster, self.resolution, self.x_min, self.y_min, epsg=self.epsg)
 
-    Returns
-    -------
-    shapely.Polygon or shapely.LineString
+    def __sub__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, sub)
 
-    &#34;&#34;&#34;
+    def __add__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, add)
 
-    dsm_array = raster.read(1)
-    affine = raster.transform
-    no_data = raster.nodatavals
-    if geometry.type == &#34;Polygon&#34;:
-        draped_exterior = list(
-            drape_coordinates(
-                geometry.exterior.coords, dsm_array, affine, interpolate, no_data
-            )
+    def __mul__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, mul)
+
+    def __truediv__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, truediv)
+
+    def __pow__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, pow)
+
+    def __iadd__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, iadd)
+
+    def __itruediv__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, itruediv)
+
+    def __imul__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, imul)
+
+    def __isub__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, isub)
+
+    def __ipow__(self, raster: Union[int, float, &#34;Raster&#34;]) -&gt; &#34;Raster&#34;:
+        return self.__raster_calculation__(raster, ipow)
+
+    def __iter__(self) -&gt; Generator[Any, None, None]:
+        _iter_shape: Union[Tuple[int, int], int] = (self.rows * self.cols, self.layers)
+        if self.layers == 1:
+            _iter_shape = self.rows * self.cols
+        _iter = self.array.reshape(_iter_shape)
+        for i in range(10):
+            yield _iter[i]
+
+    def save(self, file_name: str) -&gt; None:
+        save_raster(file_name, self.array, self.crs, affine=self.transform)
+
+    def resample(
+        self, resolution: Union[Tuple[float, float], List[float], float]
+    ) -&gt; &#34;Raster&#34;:
+        &#34;&#34;&#34;
+        Resample raster using nearest neighbor
+        Parameters
+        -------
+        resolution: tuple, list
+            spatial resolution target
+
+        Returns
+        -------
+        Raster
+            Resampled
+        &#34;&#34;&#34;
+
+        if isinstance(resolution, (float, int)):
+            resampled_x_resolution = float(resolution)
+            resampled_y_resolution = float(resolution)
+        else:
+            resampled_x_resolution = resolution[0]
+            resampled_y_resolution = resolution[1]
+
+        resampled_rows = round(self.y_extent / resampled_y_resolution)
+        resampled_cols = round(self.x_extent / resampled_x_resolution)
+
+        resampled_shape: Tuple[int, ...] = (resampled_rows, resampled_cols, self.layers)
+        if self.layers == 1:
+            resampled_shape = (resampled_rows, resampled_cols)
+
+        resampled_array = np.zeros(
+            resampled_rows * resampled_cols * self.layers, dtype=self.dtype
+        ).reshape(resampled_shape)
+
+        resampled_affine = Affine.translation(self.x_min, self.y_min) * Affine.scale(
+            resampled_x_resolution, -resampled_y_resolution
         )
-        draped_interiors = [
-            list(
-                drape_coordinates(
-                    interior.coords, dsm_array, affine, interpolate, no_data
+
+        for row in range(resampled_rows):
+            for col in range(resampled_cols):
+                x, y = rowcol2xy((row, col), resampled_affine)
+                resampled_array[row, col] = self.xy_value(
+                    x + (resampled_x_resolution / 2), y + (resampled_y_resolution / 2)
                 )
-            )
-            for interior in geometry.interiors
-        ]
 
-        return Polygon(draped_exterior, draped_interiors)
-    elif geometry.type == &#34;LineString&#34;:
-        return LineString(
-            list(
-                drape_coordinates(
-                    geometry.coords, dsm_array, affine, interpolate, no_data
+        return Raster(
+            resampled_array,
+            (resampled_x_resolution, resampled_y_resolution),
+            self.x_min,
+            self.y_min,
+        )
+
+    def resize(self, height: int, width: int) -&gt; &#34;Raster&#34;:
+        &#34;&#34;&#34;
+        Resize raster using nearest neighbor
+        Parameters
+        -------
+        height: int
+            raster height
+        width: int
+            raster width
+
+        Returns
+        -------
+        Raster
+            Resampled
+        &#34;&#34;&#34;
+        resized_y_resolution = self.y_extent / height
+        resized_x_resolution = self.x_extent / width
+
+        resized_affine = Affine.translation(self.x_min, self.y_min) * Affine.scale(
+            resized_x_resolution, -resized_y_resolution
+        )
+
+        resized_shape: Tuple[int, ...] = (height, width, self.layers)
+        if self.layers == 1:
+            resized_shape = (height, width)
+
+        resized_array = np.zeros(
+            height * width * self.layers, dtype=self.dtype
+        ).reshape(resized_shape)
+
+        for row in range(height):
+            for col in range(width):
+                x, y = rowcol2xy((row, col), resized_affine)
+                resized_array[row, col] = self.xy_value(
+                    x + (resized_x_resolution / 2), y + (resized_y_resolution / 2)
                 )
-            )
-        )
-    else:
-        raise ValueError(&#34;Unsupported geometry type&#34;)</code></pre>
+
+        return Raster(
+            resized_array,
+            (resized_x_resolution, resized_y_resolution),
+            self.x_min,
+            self.y_min,
+        )</code></pre>
 </details>
-</dd>
-<dt id="geosardine.harvesine_distance"><code class="name flex">
-<span>def <span class="ident">harvesine_distance</span></span>(<span>long_lat1: Union[numpy.ndarray, Tuple[float, float], List[float]], long_lat2: Union[numpy.ndarray, Tuple[float, float], List[float]]) ‑> Union[float, NoneType]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate distance in ellipsoid by harvesine method
-faster, less accurate</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>long_lat1</code></strong> :&ensp;<code>tuple, list, numpy array</code></dt>
-<dd>first point coordinate in longitude, latitude</dd>
-<dt><strong><code>long_lat2</code></strong> :&ensp;<code>tuple, list, numpy array</code></dt>
-<dd>second point coordinate in longitude, latitude</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>distance</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p><a href="https://rafatieppo.github.io/post/2018_07_27_idw2pyr/">https://rafatieppo.github.io/post/2018_07_27_idw2pyr/</a></p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\_utility.py#L58-L85" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">@singledispatch
-def harvesine_distance(
-    long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
-    long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
-) -&gt; Optional[float]:
-    &#34;&#34;&#34;
-    Calculate distance in ellipsoid by harvesine method
-    faster, less accurate
-
-    Parameters
-    ----------
-    long_lat1 : tuple, list, numpy array
-        first point coordinate in longitude, latitude
-    long_lat2 : tuple, list, numpy array
-        second point coordinate in longitude, latitude
-
-    Returns
-    -------
-    float
-        distance
-
-    Notes
-    -------
-    https://rafatieppo.github.io/post/2018_07_27_idw2pyr/
-    &#34;&#34;&#34;
-
-    print(&#34;only accept numpy array, list and tuple&#34;)
-    return None</code></pre>
-</details>
-</dd>
-<dt id="geosardine.rowcol2xy"><code class="name flex">
-<span>def <span class="ident">rowcol2xy</span></span>(<span>row_col: Union[Tuple[int, int], List[int]], affine: affine.Affine) ‑> Tuple[float, float]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Convert image coordinate to geographic coordinate
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>row_col</code></strong> :&ensp;<code>tuple, list</code></dt>
-<dd>image coordinate in row, column</dd>
-<dt><strong><code>affine</code></strong> :&ensp;<code>Affine</code></dt>
-<dd>affine parameter from rasterio.transform
-or create it with affine.Affine <a href="https://pypi.org/project/affine/">https://pypi.org/project/affine/</a></dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>tuple</code></dt>
-<dd>2d geographic or projected coordinate</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\_geosardine.py#L45-L65" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def rowcol2xy(
-    row_col: Union[Tuple[int, int], List[int]], affine: Affine
-) -&gt; Tuple[float, float]:
-    &#34;&#34;&#34;
-    Convert image coordinate to geographic coordinate
-    Parameters
-    ----------
-    row_col : tuple, list
-        image coordinate in row, column
-    affine : Affine
-        affine parameter from rasterio.transform
-        or create it with affine.Affine https://pypi.org/project/affine/
-
-    Returns
-    -------
-    tuple
-        2d geographic or projected coordinate
-
-    &#34;&#34;&#34;
-    row, col = row_col
-    return affine * (col, row)</code></pre>
-</details>
-</dd>
-<dt id="geosardine.spatial_join"><code class="name flex">
-<span>def <span class="ident">spatial_join</span></span>(<span>target: fiona.collection.Collection, join: fiona.collection.Collection) ‑> Tuple[List[Dict], Dict]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Join attribute from 2 vector by location.
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>target</code></strong> :&ensp;<code>fiona.Collection</code></dt>
-<dd>vector target which you want to be joined</dd>
-<dt><strong><code>join</code></strong> :&ensp;<code>fiona.Collection</code></dt>
-<dd>vector which data wont to be obtained</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>dict</code></dt>
-<dd>geojson</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\_geosardine.py#L273-L323" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def spatial_join(
-    target: fiona.Collection, join: fiona.Collection
-) -&gt; Tuple[List[Dict], Dict]:
-    &#34;&#34;&#34;
-    Join attribute from 2 vector by location.
-    Parameters
-    ----------
-    target : fiona.Collection
-        vector target which you want to be joined
-    join : fiona.Collection
-        vector which data wont to be obtained
-
-    Returns
-    -------
-    dict
-        geojson
-
-    &#34;&#34;&#34;
-    try:
-        joined_schema_prop = OrderedDict(
-            **target.schema[&#34;properties&#34;], **join.schema[&#34;properties&#34;]
-        )
-    except TypeError:
-        raise TypeError(&#34;There are column with same name. Please change it first.&#34;)
-
-    joined_schema = target.schema.copy()
-    joined_schema[&#34;properties&#34;] = joined_schema_prop
-
-    joined_features = []
-    join_polygon: List[Polygon] = [shape(feature[&#34;geometry&#34;]) for feature in join]
-
-    for feature in target:
-        target_polygon = shape(feature[&#34;geom&#34;])
-
-        overlap_areas = (
-            target_polygon.intersection(polygon).area for polygon in join_polygon
-        )
-        overlap_ratios = [
-            overlap_area / target_polygon for overlap_area in overlap_areas
-        ]
-
-        max_ratio_index = overlap_ratios.index(max(overlap_ratios))
-
-        joined_prop = OrderedDict(
-            **feature[&#34;properties&#34;], **join[max_ratio_index][&#34;properties&#34;]
-        )
-
-        feature[&#34;properties&#34;] = joined_prop
-        joined_features.append(feature)
-
-    return joined_features, joined_schema</code></pre>
-</details>
-</dd>
-<dt id="geosardine.vincenty_distance"><code class="name flex">
-<span>def <span class="ident">vincenty_distance</span></span>(<span>long_lat1: Union[numpy.ndarray, Tuple[float, float], List[float]], long_lat2: Union[numpy.ndarray, Tuple[float, float], List[float]]) ‑> Union[float, NoneType]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate distance in ellipsoid by vincenty method
-slower, more accurate</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>long_lat1</code></strong> :&ensp;<code>tuple, list</code></dt>
-<dd>first point coordinate in longitude, latitude</dd>
-<dt><strong><code>long_lat2</code></strong> :&ensp;<code>tuple, list</code></dt>
-<dd>second point coordinate in longitude, latitude</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>distance</code></dt>
-<dd>&nbsp;</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p><a href="https://www.johndcook.com/blog/2018/11/24/spheroid-distance/">https://www.johndcook.com/blog/2018/11/24/spheroid-distance/</a></p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\_utility.py#L124-L150" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">@singledispatch
-def vincenty_distance(
-    long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
-    long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
-) -&gt; Optional[float]:
-    &#34;&#34;&#34;
-    Calculate distance in ellipsoid by vincenty method
-    slower, more accurate
-
-    Parameters
-    ----------
-    long_lat1 : tuple, list
-        first point coordinate in longitude, latitude
-    long_lat2 : tuple, list
-        second point coordinate in longitude, latitude
-
-    Returns
-    -------
-    distance
-
-    Notes
-    -------
-    https://www.johndcook.com/blog/2018/11/24/spheroid-distance/
-    &#34;&#34;&#34;
-
-    print(&#34;only accept numpy array, list and tuple&#34;)
-    return None</code></pre>
-</details>
-</dd>
-<dt id="geosardine.xy2rowcol"><code class="name flex">
-<span>def <span class="ident">xy2rowcol</span></span>(<span>xy: Union[Tuple[float, float], List[float]], affine: affine.Affine, interpolate: bool = False, round_function: Callable = builtins.int) ‑> Union[Tuple[int, int], Tuple[float, float]]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Convert geographic coordinate to image coordinate
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>xy</code></strong> :&ensp;<code>tuple, list</code></dt>
-<dd>2d geographic or projected coordinate</dd>
-<dt><strong><code>affine</code></strong> :&ensp;<code>Affine</code></dt>
-<dd>affine parameter from rasterio.transform
-or create it with affine.Affine <a href="https://pypi.org/project/affine/">https://pypi.org/project/affine/</a></dd>
-<dt><strong><code>interpolate</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
-<dd>choose to interpolate or not
-* if True, value will be interpolated from
-nearest value
-* if False, value will be obtained from exact row and column</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>tuple</code></dt>
-<dd>row, column</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/1b28ef8c07fff3a46e2ed3b111f5039f15147692/geosardine\_geosardine.py#L13-L42" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">def xy2rowcol(
-    xy: Union[Tuple[float, float], List[float]],
-    affine: Affine,
-    interpolate: bool = False,
-    round_function: Callable = int,
-) -&gt; Union[Tuple[int, int], Tuple[float, float]]:
-    &#34;&#34;&#34;
-    Convert geographic coordinate to image coordinate
-    Parameters
-    ----------
-    xy : tuple, list
-        2d geographic or projected coordinate
-    affine : Affine
-        affine parameter from rasterio.transform
-        or create it with affine.Affine https://pypi.org/project/affine/
-    interpolate : bool, default True
-        choose to interpolate or not
-        * if True, value will be interpolated from  nearest value
-        * if False, value will be obtained from exact row and column
-
-    Returns
-    -------
-    tuple
-        row, column
-
-    &#34;&#34;&#34;
-    col, row = ~affine * xy
-    if not interpolate:
-        col, row = round_function(col), round_function(row)
-    return row, col</code></pre>
-</details>
-</dd>
-</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="geosardine.Raster"><code class="flex name class">
+<dt id="geosardine.raster.Raster"><code class="flex name class">
 <span>class <span class="ident">Raster</span></span>
 <span>(</span><span>array: numpy.ndarray, resolution: Union[NoneType, Tuple[float, float], List[float], Tuple[float, ...], float] = None, x_min: Union[float, NoneType] = None, y_min: Union[float, NoneType] = None, x_max: Union[float, NoneType] = None, y_max: Union[float, NoneType] = None, epsg: int = 4326)</span>
 </code></dt>
@@ -1127,7 +879,7 @@ Support calculation between different raster</p>
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="geosardine.Raster.cols"><code class="name">var <span class="ident">cols</span> : int</code></dt>
+<dt id="geosardine.raster.Raster.cols"><code class="name">var <span class="ident">cols</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1140,7 +892,7 @@ def cols(self) -&gt; int:
     return int(self.array.shape[1])</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.is_geographic"><code class="name">var <span class="ident">is_geographic</span> : bool</code></dt>
+<dt id="geosardine.raster.Raster.is_geographic"><code class="name">var <span class="ident">is_geographic</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1153,7 +905,7 @@ def is_geographic(self) -&gt; bool:
     return self.crs.is_geographic</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.is_projected"><code class="name">var <span class="ident">is_projected</span> : bool</code></dt>
+<dt id="geosardine.raster.Raster.is_projected"><code class="name">var <span class="ident">is_projected</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1166,7 +918,7 @@ def is_projected(self) -&gt; bool:
     return self.crs.is_projected</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.layers"><code class="name">var <span class="ident">layers</span> : int</code></dt>
+<dt id="geosardine.raster.Raster.layers"><code class="name">var <span class="ident">layers</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1182,7 +934,7 @@ def layers(self) -&gt; int:
     return _layers</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.rows"><code class="name">var <span class="ident">rows</span> : int</code></dt>
+<dt id="geosardine.raster.Raster.rows"><code class="name">var <span class="ident">rows</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1195,7 +947,7 @@ def rows(self) -&gt; int:
     return int(self.array.shape[0])</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.x_extent"><code class="name">var <span class="ident">x_extent</span> : float</code></dt>
+<dt id="geosardine.raster.Raster.x_extent"><code class="name">var <span class="ident">x_extent</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1208,7 +960,7 @@ def x_extent(self) -&gt; float:
     return self.x_max - self.x_min</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.y_extent"><code class="name">var <span class="ident">y_extent</span> : float</code></dt>
+<dt id="geosardine.raster.Raster.y_extent"><code class="name">var <span class="ident">y_extent</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1224,8 +976,8 @@ def y_extent(self) -&gt; float:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="geosardine.Raster.resample"><code class="name flex">
-<span>def <span class="ident">resample</span></span>(<span>self, resolution: Union[Tuple[float, float], List[float], float]) ‑> <a title="geosardine.raster.Raster" href="raster.html#geosardine.raster.Raster">Raster</a></span>
+<dt id="geosardine.raster.Raster.resample"><code class="name flex">
+<span>def <span class="ident">resample</span></span>(<span>self, resolution: Union[Tuple[float, float], List[float], float]) ‑> <a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Resample raster using nearest neighbor
@@ -1237,7 +989,7 @@ Parameters</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="geosardine.Raster" href="#geosardine.Raster">Raster</a></code></dt>
+<dt><code><a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></code></dt>
 <dd>Resampled</dd>
 </dl></div>
 <details class="source">
@@ -1298,8 +1050,8 @@ Parameters</p>
     )</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.resize"><code class="name flex">
-<span>def <span class="ident">resize</span></span>(<span>self, height: int, width: int) ‑> <a title="geosardine.raster.Raster" href="raster.html#geosardine.raster.Raster">Raster</a></span>
+<dt id="geosardine.raster.Raster.resize"><code class="name flex">
+<span>def <span class="ident">resize</span></span>(<span>self, height: int, width: int) ‑> <a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Resize raster using nearest neighbor
@@ -1313,7 +1065,7 @@ Parameters</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="geosardine.Raster" href="#geosardine.Raster">Raster</a></code></dt>
+<dt><code><a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></code></dt>
 <dd>Resampled</dd>
 </dl></div>
 <details class="source">
@@ -1366,7 +1118,7 @@ Parameters</p>
     )</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.rowcol2xy"><code class="name flex">
+<dt id="geosardine.raster.Raster.rowcol2xy"><code class="name flex">
 <span>def <span class="ident">rowcol2xy</span></span>(<span>self, row: int, col: int) ‑> Tuple[float, float]</span>
 </code></dt>
 <dd>
@@ -1380,7 +1132,7 @@ Parameters</p>
     return rowcol2xy((row, col), self.transform)</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.save"><code class="name flex">
+<dt id="geosardine.raster.Raster.save"><code class="name flex">
 <span>def <span class="ident">save</span></span>(<span>self, file_name: str) ‑> NoneType</span>
 </code></dt>
 <dd>
@@ -1394,7 +1146,7 @@ Parameters</p>
     save_raster(file_name, self.array, self.crs, affine=self.transform)</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.xy2rowcol"><code class="name flex">
+<dt id="geosardine.raster.Raster.xy2rowcol"><code class="name flex">
 <span>def <span class="ident">xy2rowcol</span></span>(<span>self, x: float, y: float) ‑> Tuple[int, int]</span>
 </code></dt>
 <dd>
@@ -1409,7 +1161,7 @@ Parameters</p>
     return int(_row), int(_col)</code></pre>
 </details>
 </dd>
-<dt id="geosardine.Raster.xy_value"><code class="name flex">
+<dt id="geosardine.raster.Raster.xy_value"><code class="name flex">
 <span>def <span class="ident">xy_value</span></span>(<span>self, x: float, y: float) ‑> Union[float, int, numpy.ndarray]</span>
 </code></dt>
 <dd>
@@ -1434,42 +1186,29 @@ Parameters</p>
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="geosardine.interpolate" href="interpolate/index.html">geosardine.interpolate</a></code></li>
-<li><code><a title="geosardine.raster" href="raster.html">geosardine.raster</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
-<li><code><a title="geosardine.drape2raster" href="#geosardine.drape2raster">drape2raster</a></code></li>
-<li><code><a title="geosardine.drape_geojson" href="#geosardine.drape_geojson">drape_geojson</a></code></li>
-<li><code><a title="geosardine.drape_shapely" href="#geosardine.drape_shapely">drape_shapely</a></code></li>
-<li><code><a title="geosardine.harvesine_distance" href="#geosardine.harvesine_distance">harvesine_distance</a></code></li>
-<li><code><a title="geosardine.rowcol2xy" href="#geosardine.rowcol2xy">rowcol2xy</a></code></li>
-<li><code><a title="geosardine.spatial_join" href="#geosardine.spatial_join">spatial_join</a></code></li>
-<li><code><a title="geosardine.vincenty_distance" href="#geosardine.vincenty_distance">vincenty_distance</a></code></li>
-<li><code><a title="geosardine.xy2rowcol" href="#geosardine.xy2rowcol">xy2rowcol</a></code></li>
+<li><code><a title="geosardine" href="index.html">geosardine</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="geosardine.Raster" href="#geosardine.Raster">Raster</a></code></h4>
+<h4><code><a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></code></h4>
 <ul class="two-column">
-<li><code><a title="geosardine.Raster.cols" href="#geosardine.Raster.cols">cols</a></code></li>
-<li><code><a title="geosardine.Raster.is_geographic" href="#geosardine.Raster.is_geographic">is_geographic</a></code></li>
-<li><code><a title="geosardine.Raster.is_projected" href="#geosardine.Raster.is_projected">is_projected</a></code></li>
-<li><code><a title="geosardine.Raster.layers" href="#geosardine.Raster.layers">layers</a></code></li>
-<li><code><a title="geosardine.Raster.resample" href="#geosardine.Raster.resample">resample</a></code></li>
-<li><code><a title="geosardine.Raster.resize" href="#geosardine.Raster.resize">resize</a></code></li>
-<li><code><a title="geosardine.Raster.rowcol2xy" href="#geosardine.Raster.rowcol2xy">rowcol2xy</a></code></li>
-<li><code><a title="geosardine.Raster.rows" href="#geosardine.Raster.rows">rows</a></code></li>
-<li><code><a title="geosardine.Raster.save" href="#geosardine.Raster.save">save</a></code></li>
-<li><code><a title="geosardine.Raster.x_extent" href="#geosardine.Raster.x_extent">x_extent</a></code></li>
-<li><code><a title="geosardine.Raster.xy2rowcol" href="#geosardine.Raster.xy2rowcol">xy2rowcol</a></code></li>
-<li><code><a title="geosardine.Raster.xy_value" href="#geosardine.Raster.xy_value">xy_value</a></code></li>
-<li><code><a title="geosardine.Raster.y_extent" href="#geosardine.Raster.y_extent">y_extent</a></code></li>
+<li><code><a title="geosardine.raster.Raster.cols" href="#geosardine.raster.Raster.cols">cols</a></code></li>
+<li><code><a title="geosardine.raster.Raster.is_geographic" href="#geosardine.raster.Raster.is_geographic">is_geographic</a></code></li>
+<li><code><a title="geosardine.raster.Raster.is_projected" href="#geosardine.raster.Raster.is_projected">is_projected</a></code></li>
+<li><code><a title="geosardine.raster.Raster.layers" href="#geosardine.raster.Raster.layers">layers</a></code></li>
+<li><code><a title="geosardine.raster.Raster.resample" href="#geosardine.raster.Raster.resample">resample</a></code></li>
+<li><code><a title="geosardine.raster.Raster.resize" href="#geosardine.raster.Raster.resize">resize</a></code></li>
+<li><code><a title="geosardine.raster.Raster.rowcol2xy" href="#geosardine.raster.Raster.rowcol2xy">rowcol2xy</a></code></li>
+<li><code><a title="geosardine.raster.Raster.rows" href="#geosardine.raster.Raster.rows">rows</a></code></li>
+<li><code><a title="geosardine.raster.Raster.save" href="#geosardine.raster.Raster.save">save</a></code></li>
+<li><code><a title="geosardine.raster.Raster.x_extent" href="#geosardine.raster.Raster.x_extent">x_extent</a></code></li>
+<li><code><a title="geosardine.raster.Raster.xy2rowcol" href="#geosardine.raster.Raster.xy2rowcol">xy2rowcol</a></code></li>
+<li><code><a title="geosardine.raster.Raster.xy_value" href="#geosardine.raster.Raster.xy_value">xy_value</a></code></li>
+<li><code><a title="geosardine.raster.Raster.y_extent" href="#geosardine.raster.Raster.y_extent">y_extent</a></code></li>
 </ul>
 </li>
 </ul>
