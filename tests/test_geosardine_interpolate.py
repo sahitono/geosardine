@@ -31,13 +31,13 @@ def test_idw():
 
     assert interpolate.idw_single([101, -7], xy, values) == 113.8992997794633
     assert (
-        interpolate.idw_single(
+        round(interpolate.idw_single(
             [860209, 9295740],
             np.array([[767984, 9261620], [838926, 9234594]]),
             np.array([[101.1, 102.2]]),
             epsg=32748,
-        )
-        == 101.86735169471324
+        ),8)
+        == round(101.86735169471324,8)
     )
 
     with pytest.raises(ValueError):
