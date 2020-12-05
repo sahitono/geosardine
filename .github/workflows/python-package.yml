@@ -32,12 +32,10 @@ jobs:
         sudo apt install gdal-bin libgdal-dev
         
     - name: Install Poetry
-      uses: dschep/install-poetry-action@v1.2
-
-    - name: Set Poetry config
-      run: |
-        poetry config virtualenvs.in-project false
-        poetry config virtualenvs.path ~/.virtualenvs
+      uses: snok/install-poetry@v1.1.1
+      with:
+        virtualenvs-in-project: false
+        virtualenvs-path: ~/my-custom-path
       
     - name: Install dependencies
       run: |
