@@ -12,6 +12,51 @@ from geosardine._utility import save_raster
 
 
 class Raster(np.ndarray):
+    """
+    Construct Raster from numpy array with spatial information.
+    Support calculation between different raster
+
+    Parameters
+    ----------
+    array : numpy array
+        array of raster
+    resolution : tuple, list, default None
+        spatial resolution
+    x_min : float, defaults to None
+        left boundary of x-axis coordinate
+    y_min : float, defaults to None
+        bottom boundary of y-axis coordinate
+    x_max : float, defaults to None
+        right boundary of x-axis coordinate
+    y_max : float, defaults to None
+        upper boundary of y-axis coordinate
+    epsg : int, defaults to 4326
+        EPSG code of reference system
+
+    Examples
+    --------
+    >>> from geosardine import Raster
+    >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), 0.4, 120, 0.7)
+    >>> print(raster)
+    [[[1. 1.]
+      [1. 1.]
+      [1. 1.]]
+     [[1. 1.]
+      [1. 1.]
+      [1. 1.]]
+     [[1. 1.]
+      [1. 1.]
+      [1. 1.]]]
+    Raster can be resampled like this. (0.2,0.2) is the result's spatial resolution
+    >>> resampled = raster.resample((0.2,0.2))
+    >>> print(resampled.shape, resampled.resolution)
+    (6, 6, 2) (0.2, 0.2)
+    Raster can be resized
+    >>> resized = raster.resize(height=16, width=16)
+    >>> print(resized.shape, resized.resolution)
+    (16, 16, 2) (0.07500000000000018, 0.07500000000000001)
+    """
+
     def __init__(
         self,
         array: np.ndarray,
@@ -24,65 +69,6 @@ class Raster(np.ndarray):
         y_max: Optional[float] = None,
         epsg: int = 4326,
     ):
-        """
-        Construct Raster from numpy array with spatial information.
-        Support calculation between different raster
-
-        Parameters
-        ----------
-        array : numpy array
-            array of raster
-        resolution : tuple, list, default None
-            spatial resolution
-        x_min : float, defaults to None
-            left boundary of x-axis coordinate
-        y_min : float, defaults to None
-            bottom boundary of y-axis coordinate
-        x_max : float, defaults to None
-            right boundary of x-axis coordinate
-        y_max : float, defaults to None
-            upper boundary of y-axis coordinate
-        epsg : int, defaults to 4326
-            EPSG code of reference system
-
-        Raises
-        ------
-        ValueError
-            [description]
-        ValueError
-            [description]
-
-        Examples
-        --------
-        >>> from geosardine import Raster
-
-        >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), 0.4, 120, 0.7)
-
-        >>> print(raster)
-        [[[1. 1.]
-          [1. 1.]
-          [1. 1.]]
-
-         [[1. 1.]
-          [1. 1.]
-          [1. 1.]]
-
-         [[1. 1.]
-          [1. 1.]
-          [1. 1.]]]
-
-
-        Raster can be resampled like this. (0.2,0.2) is the result's spatial resolution
-        >>> resampled = raster.resample((0.2,0.2))
-        >>> print(resampled.shape, resampled.resolution)
-        (6, 6, 2) (0.2, 0.2)
-
-
-        Raster can be resized
-        >>> resized = raster.resize(height=16, width=16)
-        >>> print(resized.shape, resized.resolution)
-        (16, 16, 2) (0.07500000000000018, 0.07500000000000001)
-        """
         if (
             resolution is None
             and x_min is None
@@ -138,6 +124,13 @@ class Raster(np.ndarray):
 
     @property
     def rows(self) -> int:
+        """[summary]
+
+        Returns
+        -------
+        int
+            [description]
+        """
         return int(self.array.shape[0])
 
     @property

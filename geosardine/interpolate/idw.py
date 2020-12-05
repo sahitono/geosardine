@@ -295,7 +295,7 @@ def _idw_file_path(
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
     distance_limit: float = 0.0,
-):
+) -> InterpolationResult:
     return _idw_file(
         file_name,
         spatial_res,
