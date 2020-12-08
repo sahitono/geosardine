@@ -29,7 +29,11 @@ jobs:
 
     - name: Install library
       run: |
+        sudo add-apt-repository ppa:ubuntugis/ppa
+        sudo apt update
         sudo apt install gdal-bin libgdal-dev
+        export CPLUS_INCLUDE_PATH=/usr/include/gdal
+        export C_INCLUDE_PATH=/usr/include/gdal
         
     - name: Install Poetry
       uses: snok/install-poetry@v1.1.1
