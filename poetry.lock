@@ -149,7 +149,7 @@ test = ["pytest (>=3)", "pytest-cov", "boto3 (>=1.2.4)", "mock"]
 
 [[package]]
 name = "gdal"
-version = "3.1.4"
+version = "3.2.0"
 description = "GDAL: Geospatial Data Abstraction Library"
 category = "main"
 optional = false
@@ -486,7 +486,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "6f113aead8beb53b51ac4a806c4890cdb173c6fc68779464882f62632a8516a7"
+content-hash = "fb664a70ba2e8c5ddc4801583ba6df71a47a15fca2ceba82120d003870d38bfc"
 
 [metadata.files]
 affine = [
@@ -578,7 +578,7 @@ fiona = [
     {file = "Fiona-1.8.18.tar.gz", hash = "sha256:b732ece0ff8886a29c439723a3e1fc382718804bb057519d537a81308854967a"},
 ]
 gdal = [
-    {file = "GDAL-3.1.4.tar.gz", hash = "sha256:8fd190c98eb6880749ad1675838967ca7247ff6b64f7f5998f66ce4087f96c32"},
+    {file = "GDAL-3.2.0.tar.gz", hash = "sha256:2b758fbe60f7ec5c38400d72630df633765e46b5f3f54bcb3115eaea0d531a36"},
 ]
 importlib-metadata = [
     {file = "importlib_metadata-3.1.1-py3-none-any.whl", hash = "sha256:6112e21359ef8f344e7178aa5b72dc6e62b38b0d008e6d3cb212c5b84df72013"},
