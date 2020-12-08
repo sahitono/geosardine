@@ -1,5 +1,10 @@
 """
-Spatial operations extend fiona and rasterio
+Spatial operations extend fiona and rasterio.
+Collection of spatial operation which i occasionally use written in python:
+ - Interpolation with IDW (Inverse Distance Weighting) Shepard
+ - Drape vector to raster
+ - Spatial join between two vector
+ - Raster wrapper, for better experience. ie: math operation between two raster, resize and resample
 """
 from . import interpolate
 from ._geosardine import (
@@ -26,5 +31,5 @@ __all__ = [
     "Raster",
 ]
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 __author__ = "Sahit Tuntas Sadono"

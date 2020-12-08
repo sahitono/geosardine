@@ -12,6 +12,7 @@ Collection of spatial operation which i occasionally use written in python:
  - Interpolation with IDW (Inverse Distance Weighting) Shepard
  - Drape vector to raster
  - Spatial join between two vector
+ - Raster wrapper, for better experience. ie: math operation between two raster, resize and resample
 
 :blue_book: documentation: https://sahitono.github.io/geosardine
 ## Setup
@@ -106,7 +107,7 @@ minimum parameter needed to create raster are
 3. left coordinate / x minimum
 3. bottom coordinate / y minimum
 """
-raster1 = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), 0.4, 120, 0.7)
+raster1 = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7)
 
 ## resample
 resampled = raster.resample((0.2,0.2))

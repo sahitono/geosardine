@@ -1,8 +1,10 @@
-from dataclasses import dataclass
-from math import floor
-from operator import add, iadd, imul, ipow, isub, itruediv, mul, pow, sub, truediv
-from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
+from operator import (add, iadd, imul, ipow, isub, itruediv, mul, pow, sub,
+                      truediv)
+from typing import (Any, Callable, Generator, Iterable, List, Optional, Tuple,
+                    Union)
 
+import cv2
+import numba
 import numpy as np
 from affine import Affine
 from rasterio.crs import CRS
@@ -36,7 +38,7 @@ class Raster(np.ndarray):
     Examples
     --------
     >>> from geosardine import Raster
-    >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), 0.4, 120, 0.7)
+    >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7)
     >>> print(raster)
     [[[1. 1.]
       [1. 1.]
@@ -57,6 +59,14 @@ class Raster(np.ndarray):
     (16, 16, 2) (0.07500000000000018, 0.07500000000000001)
     """
 
+    __cv2_resize_method = {
+        "nearest": cv2.INTER_NEAREST,
+        "bicubic": cv2.INTER_CUBIC,
+        "bilinear": cv2.INTER_LINEAR,
+        "area": cv2.INTER_AREA,
+        "lanczos": cv2.INTER_LANCZOS4,
+    }
+
     def __init__(
         self,
         array: np.ndarray,
@@ -64,10 +74,11 @@ class Raster(np.ndarray):
             None, Tuple[float, float], List[float], Tuple[float, ...], float
         ] = None,
         x_min: Optional[float] = None,
-        y_min: Optional[float] = None,
-        x_max: Optional[float] = None,
         y_max: Optional[float] = None,
+        x_max: Optional[float] = None,
+        y_min: Optional[float] = None,
         epsg: int = 4326,
+        no_data: Union[None, float, int] = None,
     ):
         if (
             resolution is None
@@ -91,11 +102,11 @@ class Raster(np.ndarray):
         elif resolution is not None and isinstance(resolution, Iterable):
             self.resolution = (resolution[0], resolution[1])
 
-        if resolution is not None and x_min is not None and y_min is not None:
+        if resolution is not None and x_min is not None and y_max is not None:
             self.x_min: float = x_min
-            self.y_min: float = y_min
+            self.y_max: float = y_max
             self.x_max: float = x_min + (self.resolution[0] * array.shape[1])
-            self.y_max: float = y_min + (self.resolution[1] * array.shape[0])
+            self.y_min: float = y_max - (self.resolution[1] * array.shape[0])
         elif (
             resolution is None
             and x_min is not None
@@ -118,27 +129,43 @@ class Raster(np.ndarray):
             self.resolution[0], -self.resolution[1]
         )
         self.crs = CRS.from_epsg(epsg)
+        self.no_data = no_data
+        self.__check_validity()
 
     def __new__(cls, array: np.ndarray, *args, **kwargs) -> "Raster":
         return array.view(cls)
 
     @property
     def rows(self) -> int:
-        """[summary]
+        """number of row, height
 
         Returns
         -------
         int
-            [description]
+            number of row
         """
         return int(self.array.shape[0])
 
     @property
     def cols(self) -> int:
+        """number of column, width
+
+        Returns
+        -------
+        int
+            number of column
+        """
         return int(self.array.shape[1])
 
     @property
     def layers(self) -> int:
+        """number of layer, channel
+
+        Returns
+        -------
+        int
+            number of layer
+        """
         _layers = 1
         if len(self.array.shape) > 2:
             _layers = self.array.shape[2]
@@ -160,6 +187,16 @@ class Raster(np.ndarray):
     def is_geographic(self) -> bool:
         return self.crs.is_geographic
 
+    def __check_validity(self) -> None:
+        if self.x_extent < 0 and self.y_extent < 0:
+            raise ValueError(
+                "x min should be less than x max and y min should be less than y max"
+            )
+        elif self.x_extent < 0 and self.y_extent > 0:
+            raise ValueError("x min should be less than x max")
+        elif self.x_extent > 0 and self.y_extent < 0:
+            raise ValueError("y min should be less than y max")
+
     def xy_value(self, x: float, y: float) -> Union[float, int, np.ndarray]:
         return self.array[xy2rowcol((x, y), self.transform)]
 
@@ -170,6 +207,25 @@ class Raster(np.ndarray):
         _row, _col = xy2rowcol((x, y), self.transform)
         return int(_row), int(_col)
 
+    def __raster_calc_by_pixel__(
+        self,
+        raster: "Raster",
+        operator: Callable[[Any, Any], Any],
+    ) -> np.ndarray:
+        _raster = np.zeros(self.array.shape, dtype=self.array.dtype)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                pixel_source = self.array[row, col]
+                pixel_target = raster.xy_value(*self.rowcol2xy(row, col))
+                if pixel_source != self.no_data and pixel_target != self.no_data:
+                    _raster[row, col] = operator(
+                        pixel_source,
+                        pixel_target,
+                    )
+                else:
+                    _raster[row, col] = self.no_data
+        return _raster
+
     def __raster_calculation__(
         self,
         raster: Union[int, float, "Raster"],
@@ -179,12 +235,18 @@ class Raster(np.ndarray):
             raise ValueError(f"{type(raster)} unsupported data format")
 
         if isinstance(raster, Raster):
-            _raster = np.zeros(self.array.shape, dtype=self.array.dtype)
-            for row in range(self.rows):
-                for col in range(self.cols):
-                    _raster[row, col] = operator(
-                        self.array[row, col], raster.xy_value(*self.rowcol2xy(row, col))
-                    )
+            if (
+                raster.epsg == self.epsg
+                and raster.resolution == self.resolution
+                and raster.x_min == self.x_min
+                and raster.y_min == self.y_min
+                and raster.rows == self.rows
+                and raster.cols == self.cols
+                and raster.layers == self.layers
+            ):
+                _raster = operator(self.array, raster.array)
+            else:
+                _raster = self.__raster_calc_by_pixel__(raster, operator)
         else:
             _raster = operator(self.array, raster)
 
@@ -231,7 +293,109 @@ class Raster(np.ndarray):
     def save(self, file_name: str) -> None:
         save_raster(file_name, self.array, self.crs, affine=self.transform)
 
+    def resize(
+        self, height: int, width: int, method: str = "bilinear", backend: str = "opencv"
+    ) -> "Raster":
+        """[summary]
+
+        Parameters
+        -------
+        height: int
+            height defined
+        width: int
+            width defined
+        method: str nearest or bicubic or bilinear or area or lanczos, default bilinear
+            resampling method for opencv
+            * if nearest, a nearest-neighbor interpolation
+            * if bicubic, a bicubic interpolation over 4×4 pixel neighborhood
+            * if bilinear, a bilinear interpolation
+            * if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire’-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.
+            * if lanczos, a Lanczos interpolation over 8×8 pixel neighborhood
+        backend: str opencv or python, default opencv
+            resampling backend
+            * if opencv, image will be resampled using opencv
+            * if python, image will be resampled using pure python. slower and nearest neighbor only
+
+
+        Returns
+        -------
+        Raster
+            Resized
+        """
+        if backend == "opencv":
+            return self.cv_resize(height, width, method)
+        elif backend == "python":
+            return self.py_resize(height, width)
+        else:
+            raise ValueError("Please choose between python or opencv for backend")
+
     def resample(
+        self,
+        resolution: Union[Tuple[float, float], List[float], float],
+        method: str = "bilinear",
+        backend: str = "opencv",
+    ) -> "Raster":
+        """Resample image into defined resolution
+
+        Parameters
+        -------
+        resolution: tuple, list, float
+            spatial resolution target
+        method: str nearest or bicubic or bilinear or area or lanczos, default bilinear
+            resampling method for opencv
+            * if nearest, a nearest-neighbor interpolation
+            * if bicubic, a bicubic interpolation over 4×4 pixel neighborhood
+            * if bilinear, a bilinear interpolation
+            * if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire’-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.
+            * if lanczos, a Lanczos interpolation over 8×8 pixel neighborhood
+        backend: str opencv or python, default opencv
+            resampling backend
+            * if opencv, image will be resampled using opencv
+            * if python, image will be resampled using pure python. slower and nearest neighbor only
+
+
+        Returns
+        -------
+        Raster
+            Resampled
+        """
+        if backend == "opencv":
+            return self.cv_resample(resolution, method)
+        elif backend == "python":
+            return self.py_resample(resolution)
+        else:
+            raise ValueError("Please choose between python or opencv for backend")
+
+    def cv_resize(self, height: int, width: int, method: str) -> "Raster":
+        resized_y_resolution = self.y_extent / height
+        resized_x_resolution = self.x_extent / width
+        resized = cv2.resize(
+            self.array, (height, width), interpolation=self.__cv2_resize_method[method]
+        )
+        return Raster(
+            resized,
+            (resized_x_resolution, resized_y_resolution),
+            self.x_min,
+            self.y_min,
+        )
+
+    def cv_resample(
+        self, resolution: Union[Tuple[float, float], List[float], float], method: str
+    ) -> "Raster":
+        if isinstance(resolution, (float, int)):
+            resampled_x_resolution = float(resolution)
+            resampled_y_resolution = float(resolution)
+        else:
+            resampled_x_resolution = resolution[0]
+            resampled_y_resolution = resolution[1]
+
+        resampled_rows = round(self.y_extent / resampled_y_resolution)
+        resampled_cols = round(self.x_extent / resampled_x_resolution)
+
+        resampled = self.cv_resize(resampled_rows, resampled_cols, method)
+        return resampled
+
+    def py_resample(
         self, resolution: Union[Tuple[float, float], List[float], float]
     ) -> "Raster":
         """
@@ -283,7 +447,7 @@ class Raster(np.ndarray):
             self.y_min,
         )
 
-    def resize(self, height: int, width: int) -> "Raster":
+    def py_resize(self, height: int, width: int) -> "Raster":
         """
         Resize raster using nearest neighbor
         Parameters

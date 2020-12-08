@@ -3,12 +3,12 @@ from geosardine import Raster
 
 
 def test_raster() -> None:
-    raster = Raster(np.arange(32).reshape(4, 4, 2), 0.3, 120, 0.7)
+    raster = Raster(np.arange(32).reshape(4, 4, 2), 0.3, 120, 20)
 
     assert (raster.array == np.arange(32).reshape(4, 4, 2)).all()
     assert raster.resolution == (0.3, 0.3)
     assert raster.x_max == 120 + (0.3 * 4)
-    assert raster.y_max == 0.7 + (0.3 * 4)
+    assert raster.y_min == 20 - (0.3 * 4)
 
 
 def test_raster_operator() -> None:
