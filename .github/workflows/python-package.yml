@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7, 3.8]
-        os: [ubuntu-21.04]
+        os: [ubuntu-20.04]
         
     runs-on: ${{ matrix.os }}
     
@@ -29,6 +29,8 @@ jobs:
 
     - name: Install library
       run: |
+        sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+        sudo apt update
         sudo apt install gdal-bin libgdal-dev
         
     - name: Install Poetry
