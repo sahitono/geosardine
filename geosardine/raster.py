@@ -1,7 +1,5 @@
-from operator import (add, iadd, imul, ipow, isub, itruediv, mul, pow, sub,
-                      truediv)
-from typing import (Any, Callable, Generator, Iterable, List, Optional, Tuple,
-                    Union)
+from operator import add, iadd, imul, ipow, isub, itruediv, mul, pow, sub, truediv
+from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
 
 import cv2
 import numba
@@ -26,19 +24,19 @@ class Raster(np.ndarray):
         spatial resolution
     x_min : float, defaults to None
         left boundary of x-axis coordinate
-    y_min : float, defaults to None
-        bottom boundary of y-axis coordinate
-    x_max : float, defaults to None
-        right boundary of x-axis coordinate
     y_max : float, defaults to None
         upper boundary of y-axis coordinate
+    x_max : float, defaults to None
+        right boundary of x-axis coordinate
+    y_min : float, defaults to None
+        bottom boundary of y-axis coordinate
     epsg : int, defaults to 4326
         EPSG code of reference system
 
     Examples
     --------
     >>> from geosardine import Raster
-    >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7)
+    >>> raster = cd
     >>> print(raster)
     [[[1. 1.]
       [1. 1.]

@@ -1,5 +1,5 @@
 {% set name = "geosardine" %}
-{% set version = "0.8.0" %}
+{% set version = "0.9.0" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: b7acbe0fc354c668e972cdcff4ed32b6ecd47fa65632606c9499f3a14a9dcdb4
+  sha256: eb0a47b7b75d933e0c784b95e2d607ffa3f3d532193aa7b679dd5633b7e3c5b5
 
 build:
   noarch: python
@@ -27,21 +27,22 @@ requirements:
     - affine >=2.3.0,<3.0.0
     - click >=7.1.2,<8.0.0
     - fiona >=1.8.13,<2.0.0
-    - gdal >=3.0.4,<4.0.0
+    - gdal >=3.0.4,<3.1.4
     - numba >=0.51.2,<0.52.0
     - numpy >=1.18,<2.0
     - python >=3.6,<4.0
     - rasterio >=1.1.4,<2.0.0
     - shapely >=1.6.4,<2.0.0
     - tqdm
+    - opencv >=4.4.0,<5.0.0
 
 
 test:
   imports:
     - geosardine
     - geosardine.interpolate
+    - geosardine.raster
   commands:
-    - pip check
     - dine --help
   requires:
     - pytest
