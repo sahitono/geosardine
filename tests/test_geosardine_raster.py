@@ -39,3 +39,5 @@ def test_raster_manipulation() -> None:
     assert resampled.rows == 16
     assert resampled.cols == 16
     assert resampled.layers == 2
+    assert raster.transform[5] == resampled.transform[5]
+    assert raster.transform[2] == resampled.transform[2]

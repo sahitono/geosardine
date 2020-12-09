@@ -1,5 +1,7 @@
-from operator import add, iadd, imul, ipow, isub, itruediv, mul, pow, sub, truediv
-from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
+from operator import (add, iadd, imul, ipow, isub, itruediv, mul, pow, sub,
+                      truediv)
+from typing import (Any, Callable, Generator, Iterable, List, Optional, Tuple,
+                    Union)
 
 import cv2
 import numba
@@ -32,11 +34,13 @@ class Raster(np.ndarray):
         bottom boundary of y-axis coordinate
     epsg : int, defaults to 4326
         EPSG code of reference system
+    no_data : int or float, default None
+        no data value
 
     Examples
     --------
     >>> from geosardine import Raster
-    >>> raster = cd
+    >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7)
     >>> print(raster)
     [[[1. 1.]
       [1. 1.]
@@ -123,7 +127,7 @@ class Raster(np.ndarray):
 
         self.array = array
         self.epsg = epsg
-        self.transform = Affine.translation(self.x_min, self.y_min) * Affine.scale(
+        self.transform = Affine.translation(self.x_min, self.y_max) * Affine.scale(
             self.resolution[0], -self.resolution[1]
         )
         self.crs = CRS.from_epsg(epsg)
@@ -157,14 +161,14 @@ class Raster(np.ndarray):
 
     @property
     def layers(self) -> int:
-        """number of layer, channel
+        """number of layer / channel
 
         Returns
         -------
         int
-            number of layer
+            number of layer / channel
         """
-        _layers = 1
+        _layers: int = 1
         if len(self.array.shape) > 2:
             _layers = self.array.shape[2]
         return _layers
@@ -196,7 +200,29 @@ class Raster(np.ndarray):
             raise ValueError("y min should be less than y max")
 
     def xy_value(self, x: float, y: float) -> Union[float, int, np.ndarray]:
-        return self.array[xy2rowcol((x, y), self.transform)]
+        """Obtain pixel value by geodetic or projected coordinate
+
+        Parameters
+        ----------
+        x : float
+            x-axis coordinate
+        y : float
+            y-axis coordinate
+
+        Returns
+        -------
+        Union[float, int, np.ndarray]
+            pixel value
+        """
+        try:
+            return self.array[self.xy2rowcol(x, y)]
+        except IndexError:
+            raise IndexError(
+                f"""
+                {x},{y} is out of bound. 
+                x_min={self.x_min} y_min={self.y_min} x_max={self.x_max} y_max={self.y_max}
+                """
+            )
 
     def rowcol2xy(self, row: int, col: int) -> Tuple[float, float]:
         return rowcol2xy((row, col), self.transform)
@@ -226,10 +252,10 @@ class Raster(np.ndarray):
 
     def __raster_calculation__(
         self,
-        raster: Union[int, float, "Raster"],
+        raster: Union[int, float, "Raster", np.ndarray],
         operator: Callable[[Any, Any], Any],
     ) -> "Raster":
-        if not isinstance(raster, (int, float, Raster)):
+        if not isinstance(raster, (int, float, Raster, np.ndarray)):
             raise ValueError(f"{type(raster)} unsupported data format")
 
         if isinstance(raster, Raster):
@@ -238,46 +264,46 @@ class Raster(np.ndarray):
                 and raster.resolution == self.resolution
                 and raster.x_min == self.x_min
                 and raster.y_min == self.y_min
-                and raster.rows == self.rows
-                and raster.cols == self.cols
-                and raster.layers == self.layers
+                and raster.shape == self.shape
             ):
                 _raster = operator(self.array, raster.array)
             else:
                 _raster = self.__raster_calc_by_pixel__(raster, operator)
+        elif isinstance(raster, np.ndarray):
+            _raster = operator(self.array, raster)
         else:
             _raster = operator(self.array, raster)
 
-        return Raster(_raster, self.resolution, self.x_min, self.y_min, epsg=self.epsg)
+        return Raster(_raster, self.resolution, self.x_min, self.y_max, epsg=self.epsg)
 
-    def __sub__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __sub__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, sub)
 
-    def __add__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __add__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, add)
 
-    def __mul__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __mul__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, mul)
 
-    def __truediv__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __truediv__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, truediv)
 
-    def __pow__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __pow__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, pow)
 
-    def __iadd__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __iadd__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, iadd)
 
-    def __itruediv__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __itruediv__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, itruediv)
 
-    def __imul__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __imul__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, imul)
 
-    def __isub__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __isub__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, isub)
 
-    def __ipow__(self, raster: Union[int, float, "Raster"]) -> "Raster":
+    def __ipow__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, ipow)
 
     def __iter__(self) -> Generator[Any, None, None]:
@@ -374,7 +400,8 @@ class Raster(np.ndarray):
             resized,
             (resized_x_resolution, resized_y_resolution),
             self.x_min,
-            self.y_min,
+            self.y_max,
+            epsg=self.epsg,
         )
 
     def cv_resample(
@@ -442,7 +469,8 @@ class Raster(np.ndarray):
             resampled_array,
             (resampled_x_resolution, resampled_y_resolution),
             self.x_min,
-            self.y_min,
+            self.y_max,
+            epsg=self.epsg,
         )
 
     def py_resize(self, height: int, width: int) -> "Raster":
@@ -486,5 +514,6 @@ class Raster(np.ndarray):
             resized_array,
             (resized_x_resolution, resized_y_resolution),
             self.x_min,
-            self.y_min,
+            self.y_max,
+            epsg=self.epsg,
         )
