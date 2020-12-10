@@ -1,7 +1,5 @@
-from operator import (add, iadd, imul, ipow, isub, itruediv, mul, pow, sub,
-                      truediv)
-from typing import (Any, Callable, Generator, Iterable, List, Optional, Tuple,
-                    Union)
+from operator import add, iadd, imul, ipow, isub, itruediv, mul, pow, sub, truediv
+from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
 
 import cv2
 import numba
