@@ -78,62 +78,96 @@ class Raster(np.ndarray):
         x_max: Optional[float] = None,
         y_min: Optional[float] = None,
         epsg: int = 4326,
-        no_data: Union[None, float, int] = None,
+        no_data: Union[float, int] = -32767.0,
+        transform: Optional[Affine] = None,
     ):
-        if (
-            resolution is None
-            and x_min is None
-            and y_min is None
-            and x_max is None
-            and y_max is None
-        ):
+        if transform is None:
+            if resolution is None and x_min is None and y_min is None:
+                raise ValueError(
+                    "Please define resolution and at least x minimum and y minimum"
+                )
+
+            if resolution is not None and x_min is None and y_max is None:
+                raise ValueError("Please define x_min and y_max")
+
+            if isinstance(resolution, float):
+                self.resolution: Tuple[float, float] = (
+                    resolution,
+                    resolution,
+                )
+            elif isinstance(resolution, Iterable):
+                self.resolution = (resolution[0], resolution[1])
+
+            if (
+                resolution is None
+                and x_min is not None
+                and y_min is not None
+                and x_max is not None
+                and y_max is not None
+            ):
+                self.resolution = (
+                    (x_max - x_min) / array.shape[1],
+                    (y_max - y_min) / array.shape[0],
+                )
+
+            self.transform: Affine = Affine.translation(x_min, y_max) * Affine.scale(
+                self.resolution[0], -self.resolution[1]
+            )
+        elif isinstance(transform, Affine):
+            self.transform = transform
+        else:
             raise ValueError(
-                "Please define resolution and at least x minimum and y minimum"
+                "Please define affine parameter or resolution and xmin ymax"
             )
 
-        if resolution is not None and x_min is None and y_min is None:
-            raise ValueError("Please at least define x_min and y_min")
-
-        if isinstance(resolution, float):
-            self.resolution: Tuple[float, float] = (
-                resolution,
-                resolution,
-            )
-        elif resolution is not None and isinstance(resolution, Iterable):
-            self.resolution = (resolution[0], resolution[1])
-
-        if resolution is not None and x_min is not None and y_max is not None:
-            self.x_min: float = x_min
-            self.y_max: float = y_max
-            self.x_max: float = x_min + (self.resolution[0] * array.shape[1])
-            self.y_min: float = y_max - (self.resolution[1] * array.shape[0])
-        elif (
-            resolution is None
-            and x_min is not None
-            and y_min is not None
-            and x_max is not None
-            and y_max is not None
-        ):
-            self.resolution = (
-                (x_max - x_min) / array.shape[1],
-                (y_max - y_min) / array.shape[0],
-            )
-            self.x_min = x_min
-            self.y_min = y_min
-            self.x_max = x_max
-            self.y_max = y_max
-
-        self.array = array
         self.epsg = epsg
-        self.transform = Affine.translation(self.x_min, self.y_max) * Affine.scale(
-            self.resolution[0], -self.resolution[1]
-        )
+
         self.crs = CRS.from_epsg(epsg)
         self.no_data = no_data
         self.__check_validity()
 
     def __new__(cls, array: np.ndarray, *args, **kwargs) -> "Raster":
         return array.view(cls)
+
+    @property
+    def array(self) -> np.ndarray:
+        return self.__array__()
+
+    @property
+    def __transform(self) -> Tuple[float, ...]:
+        return tuple(self.transform)
+
+    @property
+    def x_min(self) -> float:
+        return self.__transform[2]
+
+    @property
+    def y_max(self) -> float:
+        return self.__transform[5]
+
+    @property
+    def x_max(self) -> float:
+        return self.__transform[2] + (self.resolution[0] * self.cols)
+
+    @property
+    def y_min(self) -> float:
+        return self.__transform[5] - (self.resolution[1] * self.rows)
+
+    @property
+    def upper(self) -> float:
+        return self.y_max
+
+    @property
+    def left(self) -> float:
+        return self.x_min
+
+    @property
+    def right(self) -> float:
+        return self.x_max
+
+    @property
+    def bottom(self) -> float:
+        return self.y_min
 
     @property
     def rows(self) -> int:
@@ -213,7 +247,10 @@ class Raster(np.ndarray):
             pixel value
         """
         try:
-            return self.array[self.xy2rowcol(x, y)]
+            row, col = self.xy2rowcol(x, y)
+            if row < 0 or col < 0:
+                raise IndexError
+            return self.array[row, col]
         except IndexError:
             raise IndexError(
                 f"""
@@ -237,14 +274,17 @@ class Raster(np.ndarray):
         _raster = np.zeros(self.array.shape, dtype=self.array.dtype)
         for row in range(self.rows):
             for col in range(self.cols):
-                pixel_source = self.array[row, col]
-                pixel_target = raster.xy_value(*self.rowcol2xy(row, col))
-                if pixel_source != self.no_data and pixel_target != self.no_data:
-                    _raster[row, col] = operator(
-                        pixel_source,
-                        pixel_target,
-                    )
-                else:
+                try:
+                    pixel_source = self.array[row, col]
+                    pixel_target = raster.xy_value(*self.rowcol2xy(row, col))
+                    if pixel_source != self.no_data and pixel_target != self.no_data:
+                        _raster[row, col] = operator(
+                            pixel_source,
+                            pixel_target,
+                        )
+                    else:
+                        _raster[row, col] = self.no_data
+                except IndexError:
                     _raster[row, col] = self.no_data
         return _raster
 

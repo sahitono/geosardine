@@ -23,6 +23,7 @@ def save_raster(
     crs: Union[CRS, int],
     coordinate_array: Optional[np.ndarray] = None,
     affine: Optional[Affine] = None,
+    nodata: Union[None, float, int] = None,
 ):
     height, width = value_array.shape
     layers = 1
@@ -45,10 +46,11 @@ def save_raster(
         driver="GTiff",
         height=height,
         width=width,
-        count=layers + 1,
+        count=layers,
         dtype=value_array.dtype,
         crs=crs,
         transform=affine,
+        nodata=nodata,
     ) as raster:
         for layer in range(layers):
             raster.write(value_array[:, :, layer], layer + 1)

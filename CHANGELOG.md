@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2020-12-10
+### Added
+- upper, left, right, bottom boundary
+### Changed
+- minimum argument needed is x_min, y_max, resolution or transform
+- simpler conditional statement in raster init
+- x_min, x_max, y_max,y_min is computed properties
+### Fixed
+- save raster return exact layer not +1 layer
+- return no data if pixel out of bound for raster calculation
+- raise error when using xy_value and the row col index is negative
+
 ## [0.9.2] - 2020-12-09
 ### Added
 - Add numpy.ndarray type in raster calculation
