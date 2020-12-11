@@ -1,5 +1,6 @@
 {
     "cSpell.ignoreWords": [
         "ndarray"
-    ]
+    ],
+    "python.pythonPath": "d:\\Documents\\00SelfProject\\sardine\\.venv\\Scripts\\python.exe"
 }

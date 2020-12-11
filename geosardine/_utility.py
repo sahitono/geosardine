@@ -24,7 +24,7 @@ def save_raster(
     coordinate_array: Optional[np.ndarray] = None,
     affine: Optional[Affine] = None,
     nodata: Union[None, float, int] = None,
-):
+) -> None:
     height, width = value_array.shape
     layers = 1
     if len(value_array.shape) == 3:
@@ -39,21 +39,35 @@ def save_raster(
 
     if type(crs) == int:
         crs = CRS.from_epsg(crs)
-
-    with rasterio.open(
-        file_name,
-        "w",
-        driver="GTiff",
-        height=height,
-        width=width,
-        count=layers,
-        dtype=value_array.dtype,
-        crs=crs,
-        transform=affine,
-        nodata=nodata,
-    ) as raster:
-        for layer in range(layers):
-            raster.write(value_array[:, :, layer], layer + 1)
+    if nodata is not None:
+        with rasterio.open(
+            file_name,
+            "w",
+            driver="GTiff",
+            height=height,
+            width=width,
+            count=layers,
+            dtype=value_array.dtype,
+            crs=crs,
+            transform=affine,
+            nodata=nodata,
+        ) as raster:
+            for layer in range(layers):
+                raster.write(value_array[:, :, layer], layer + 1)
+    else:
+        with rasterio.open(
+            file_name,
+            "w",
+            driver="GTiff",
+            height=height,
+            width=width,
+            count=layers,
+            dtype=value_array.dtype,
+            crs=crs,
+            transform=affine,
+        ) as raster:
+            for layer in range(layers):
+                raster.write(value_array[:, :, layer], layer + 1)
     print(f"{file_name} saved")
 
 

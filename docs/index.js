@@ -63,39 +63,84 @@ INDEX=[
 "doc":"Construct Raster from numpy array with spatial information. Support calculation between different raster Parameters      array : numpy array array of raster resolution : tuple, list, default None spatial resolution x_min : float, defaults to None left boundary of x-axis coordinate y_max : float, defaults to None upper boundary of y-axis coordinate x_max : float, defaults to None right boundary of x-axis coordinate y_min : float, defaults to None bottom boundary of y-axis coordinate epsg : int, defaults to 4326 EPSG code of reference system no_data : int or float, default None no data value Examples     >>> from geosardine import Raster >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7) >>> print(raster)  [1. 1.] [1. 1.] [1. 1.  1. 1.] [1. 1.] [1. 1.  1. 1.] [1. 1.] [1. 1. ] Raster can be resampled like this. (0.2,0.2) is the result's spatial resolution >>> resampled = raster.resample 0.2,0.2 >>> print(resampled.shape, resampled.resolution) (6, 6, 2) (0.2, 0.2) Raster can be resized >>> resized = raster.resize(height=16, width=16) >>> print(resized.shape, resized.resolution) (16, 16, 2) (0.07500000000000018, 0.07500000000000001)"
 },
 {
+"ref":"geosardine.Raster.array",
+"url":0,
+"doc":"the numpy array of raster"
+},
+{
+"ref":"geosardine.Raster.x_min",
+"url":0,
+"doc":"minimum x-axis coordinate"
+},
+{
+"ref":"geosardine.Raster.y_max",
+"url":0,
+"doc":"maximum y-axis coordinate"
+},
+{
+"ref":"geosardine.Raster.x_max",
+"url":0,
+"doc":"maximum x-axis coordinate"
+},
+{
+"ref":"geosardine.Raster.y_min",
+"url":0,
+"doc":"minimum y-axis coordinate"
+},
+{
+"ref":"geosardine.Raster.upper",
+"url":0,
+"doc":"upper y-axis coordinate"
+},
+{
+"ref":"geosardine.Raster.left",
+"url":0,
+"doc":"left x-axis coordinate"
+},
+{
+"ref":"geosardine.Raster.right",
+"url":0,
+"doc":"right x-axis coordinate"
+},
+{
+"ref":"geosardine.Raster.bottom",
+"url":0,
+"doc":"bottom y-axis coordinate"
+},
+{
 "ref":"geosardine.Raster.rows",
 "url":0,
-"doc":"number of row, height Returns    - int number of row"
+"doc":"number of row, height"
 },
 {
 "ref":"geosardine.Raster.cols",
 "url":0,
-"doc":"number of column, width Returns    - int number of column"
+"doc":"number of column, width"
 },
 {
 "ref":"geosardine.Raster.layers",
 "url":0,
-"doc":"number of layer / channel Returns    - int number of layer / channel"
+"doc":"number of layer / channel"
 },
 {
 "ref":"geosardine.Raster.x_extent",
 "url":0,
-"doc":""
+"doc":"width of raster in the map unit (degree decimal or meters)"
 },
 {
 "ref":"geosardine.Raster.y_extent",
 "url":0,
-"doc":""
+"doc":"height of raster in the map unit (degree decimal or meters)"
 },
 {
 "ref":"geosardine.Raster.is_projected",
 "url":0,
-"doc":""
+"doc":"check crs is projected or not"
 },
 {
 "ref":"geosardine.Raster.is_geographic",
 "url":0,
-"doc":""
+"doc":"check crs is geographic or not"
 },
 {
 "ref":"geosardine.Raster.xy_value",
@@ -106,55 +151,31 @@ INDEX=[
 {
 "ref":"geosardine.Raster.rowcol2xy",
 "url":0,
-"doc":"",
+"doc":"Convert image coordinate (row, col) to real world coordinate Parameters      row : int col : int Returns    - Tuple[float, float] X,Y coordinate in real world",
 "func":1
 },
 {
 "ref":"geosardine.Raster.xy2rowcol",
 "url":0,
-"doc":"",
+"doc":"Convert real world coordinate to image coordinate (row, col) Parameters      x : float y : float Returns    - Tuple[int, int] row, column",
 "func":1
 },
 {
 "ref":"geosardine.Raster.save",
 "url":0,
-"doc":"",
+"doc":"Save raster as geotiff Parameters      file_name : str output filename",
 "func":1
 },
 {
 "ref":"geosardine.Raster.resize",
 "url":0,
-"doc":"[summary] Parameters    - height: int height defined width: int width defined method: str nearest or bicubic or bilinear or area or lanczos, default bilinear resampling method for opencv  if nearest, a nearest-neighbor interpolation  if bicubic, a bicubic interpolation over 4\u00d74 pixel neighborhood  if bilinear, a bilinear interpolation  if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire\u2019-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.  if lanczos, a Lanczos interpolation over 8\u00d78 pixel neighborhood backend: str opencv or python, default opencv resampling backend  if opencv, image will be resampled using opencv  if python, image will be resampled using pure python. slower and nearest neighbor only Returns    - Raster Resized",
+"doc":"Resize raster into defined height and width Parameters    - height: int height defined width: int width defined method: str nearest or bicubic or bilinear or area or lanczos, default bilinear resampling method for opencv   if nearest, a nearest-neighbor interpolation   if bicubic, a bicubic interpolation over 4\u00d74 pixel neighborhood   if bilinear, a bilinear interpolation   if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire\u2019-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.   if lanczos, a Lanczos interpolation over 8\u00d78 pixel neighborhood backend: str opencv or python, default opencv resampling backend   if opencv, image will be resampled using opencv   if python, image will be resampled using pure python. slower and nearest neighbor only Returns    - Raster Resized",
 "func":1
 },
 {
 "ref":"geosardine.Raster.resample",
 "url":0,
-"doc":"Resample image into defined resolution Parameters    - resolution: tuple, list, float spatial resolution target method: str nearest or bicubic or bilinear or area or lanczos, default bilinear resampling method for opencv  if nearest, a nearest-neighbor interpolation  if bicubic, a bicubic interpolation over 4\u00d74 pixel neighborhood  if bilinear, a bilinear interpolation  if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire\u2019-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.  if lanczos, a Lanczos interpolation over 8\u00d78 pixel neighborhood backend: str opencv or python, default opencv resampling backend  if opencv, image will be resampled using opencv  if python, image will be resampled using pure python. slower and nearest neighbor only Returns    - Raster Resampled",
-"func":1
-},
-{
-"ref":"geosardine.Raster.cv_resize",
-"url":0,
-"doc":"",
-"func":1
-},
-{
-"ref":"geosardine.Raster.cv_resample",
-"url":0,
-"doc":"",
-"func":1
-},
-{
-"ref":"geosardine.Raster.py_resample",
-"url":0,
-"doc":"Resample raster using nearest neighbor Parameters    - resolution: tuple, list spatial resolution target Returns    - Raster Resampled",
-"func":1
-},
-{
-"ref":"geosardine.Raster.py_resize",
-"url":0,
-"doc":"Resize raster using nearest neighbor Parameters    - height: int raster height width: int raster width Returns    - Raster Resampled",
+"doc":"Resample image into defined resolution Parameters    - resolution: tuple, list, float spatial resolution target method: str nearest or bicubic or bilinear or area or lanczos, default bilinear resampling method for opencv   if nearest, a nearest-neighbor interpolation   if bicubic, a bicubic interpolation over 4\u00d74 pixel neighborhood   if bilinear, a bilinear interpolation   if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire\u2019-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.   if lanczos, a Lanczos interpolation over 8\u00d78 pixel neighborhood backend: str opencv or python, default opencv resampling backend   if opencv, image will be resampled using opencv   if python, image will be resampled using pure python. slower and nearest neighbor only Returns    - Raster Resampled",
 "func":1
 },
 {
@@ -196,39 +217,84 @@ INDEX=[
 "doc":"Construct Raster from numpy array with spatial information. Support calculation between different raster Parameters      array : numpy array array of raster resolution : tuple, list, default None spatial resolution x_min : float, defaults to None left boundary of x-axis coordinate y_max : float, defaults to None upper boundary of y-axis coordinate x_max : float, defaults to None right boundary of x-axis coordinate y_min : float, defaults to None bottom boundary of y-axis coordinate epsg : int, defaults to 4326 EPSG code of reference system no_data : int or float, default None no data value Examples     >>> from geosardine import Raster >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7) >>> print(raster)  [1. 1.] [1. 1.] [1. 1.  1. 1.] [1. 1.] [1. 1.  1. 1.] [1. 1.] [1. 1. ] Raster can be resampled like this. (0.2,0.2) is the result's spatial resolution >>> resampled = raster.resample 0.2,0.2 >>> print(resampled.shape, resampled.resolution) (6, 6, 2) (0.2, 0.2) Raster can be resized >>> resized = raster.resize(height=16, width=16) >>> print(resized.shape, resized.resolution) (16, 16, 2) (0.07500000000000018, 0.07500000000000001)"
 },
 {
+"ref":"geosardine.raster.Raster.array",
+"url":2,
+"doc":"the numpy array of raster"
+},
+{
+"ref":"geosardine.raster.Raster.x_min",
+"url":2,
+"doc":"minimum x-axis coordinate"
+},
+{
+"ref":"geosardine.raster.Raster.y_max",
+"url":2,
+"doc":"maximum y-axis coordinate"
+},
+{
+"ref":"geosardine.raster.Raster.x_max",
+"url":2,
+"doc":"maximum x-axis coordinate"
+},
+{
+"ref":"geosardine.raster.Raster.y_min",
+"url":2,
+"doc":"minimum y-axis coordinate"
+},
+{
+"ref":"geosardine.raster.Raster.upper",
+"url":2,
+"doc":"upper y-axis coordinate"
+},
+{
+"ref":"geosardine.raster.Raster.left",
+"url":2,
+"doc":"left x-axis coordinate"
+},
+{
+"ref":"geosardine.raster.Raster.right",
+"url":2,
+"doc":"right x-axis coordinate"
+},
+{
+"ref":"geosardine.raster.Raster.bottom",
+"url":2,
+"doc":"bottom y-axis coordinate"
+},
+{
 "ref":"geosardine.raster.Raster.rows",
 "url":2,
-"doc":"number of row, height Returns    - int number of row"
+"doc":"number of row, height"
 },
 {
 "ref":"geosardine.raster.Raster.cols",
 "url":2,
-"doc":"number of column, width Returns    - int number of column"
+"doc":"number of column, width"
 },
 {
 "ref":"geosardine.raster.Raster.layers",
 "url":2,
-"doc":"number of layer / channel Returns    - int number of layer / channel"
+"doc":"number of layer / channel"
 },
 {
 "ref":"geosardine.raster.Raster.x_extent",
 "url":2,
-"doc":""
+"doc":"width of raster in the map unit (degree decimal or meters)"
 },
 {
 "ref":"geosardine.raster.Raster.y_extent",
 "url":2,
-"doc":""
+"doc":"height of raster in the map unit (degree decimal or meters)"
 },
 {
 "ref":"geosardine.raster.Raster.is_projected",
 "url":2,
-"doc":""
+"doc":"check crs is projected or not"
 },
 {
 "ref":"geosardine.raster.Raster.is_geographic",
 "url":2,
-"doc":""
+"doc":"check crs is geographic or not"
 },
 {
 "ref":"geosardine.raster.Raster.xy_value",
@@ -239,55 +305,31 @@ INDEX=[
 {
 "ref":"geosardine.raster.Raster.rowcol2xy",
 "url":2,
-"doc":"",
+"doc":"Convert image coordinate (row, col) to real world coordinate Parameters      row : int col : int Returns    - Tuple[float, float] X,Y coordinate in real world",
 "func":1
 },
 {
 "ref":"geosardine.raster.Raster.xy2rowcol",
 "url":2,
-"doc":"",
+"doc":"Convert real world coordinate to image coordinate (row, col) Parameters      x : float y : float Returns    - Tuple[int, int] row, column",
 "func":1
 },
 {
 "ref":"geosardine.raster.Raster.save",
 "url":2,
-"doc":"",
+"doc":"Save raster as geotiff Parameters      file_name : str output filename",
 "func":1
 },
 {
 "ref":"geosardine.raster.Raster.resize",
 "url":2,
-"doc":"[summary] Parameters    - height: int height defined width: int width defined method: str nearest or bicubic or bilinear or area or lanczos, default bilinear resampling method for opencv  if nearest, a nearest-neighbor interpolation  if bicubic, a bicubic interpolation over 4\u00d74 pixel neighborhood  if bilinear, a bilinear interpolation  if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire\u2019-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.  if lanczos, a Lanczos interpolation over 8\u00d78 pixel neighborhood backend: str opencv or python, default opencv resampling backend  if opencv, image will be resampled using opencv  if python, image will be resampled using pure python. slower and nearest neighbor only Returns    - Raster Resized",
+"doc":"Resize raster into defined height and width Parameters    - height: int height defined width: int width defined method: str nearest or bicubic or bilinear or area or lanczos, default bilinear resampling method for opencv   if nearest, a nearest-neighbor interpolation   if bicubic, a bicubic interpolation over 4\u00d74 pixel neighborhood   if bilinear, a bilinear interpolation   if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire\u2019-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.   if lanczos, a Lanczos interpolation over 8\u00d78 pixel neighborhood backend: str opencv or python, default opencv resampling backend   if opencv, image will be resampled using opencv   if python, image will be resampled using pure python. slower and nearest neighbor only Returns    - Raster Resized",
 "func":1
 },
 {
 "ref":"geosardine.raster.Raster.resample",
 "url":2,
-"doc":"Resample image into defined resolution Parameters    - resolution: tuple, list, float spatial resolution target method: str nearest or bicubic or bilinear or area or lanczos, default bilinear resampling method for opencv  if nearest, a nearest-neighbor interpolation  if bicubic, a bicubic interpolation over 4\u00d74 pixel neighborhood  if bilinear, a bilinear interpolation  if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire\u2019-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.  if lanczos, a Lanczos interpolation over 8\u00d78 pixel neighborhood backend: str opencv or python, default opencv resampling backend  if opencv, image will be resampled using opencv  if python, image will be resampled using pure python. slower and nearest neighbor only Returns    - Raster Resampled",
-"func":1
-},
-{
-"ref":"geosardine.raster.Raster.cv_resize",
-"url":2,
-"doc":"",
-"func":1
-},
-{
-"ref":"geosardine.raster.Raster.cv_resample",
-"url":2,
-"doc":"",
-"func":1
-},
-{
-"ref":"geosardine.raster.Raster.py_resample",
-"url":2,
-"doc":"Resample raster using nearest neighbor Parameters    - resolution: tuple, list spatial resolution target Returns    - Raster Resampled",
-"func":1
-},
-{
-"ref":"geosardine.raster.Raster.py_resize",
-"url":2,
-"doc":"Resize raster using nearest neighbor Parameters    - height: int raster height width: int raster width Returns    - Raster Resampled",
+"doc":"Resample image into defined resolution Parameters    - resolution: tuple, list, float spatial resolution target method: str nearest or bicubic or bilinear or area or lanczos, default bilinear resampling method for opencv   if nearest, a nearest-neighbor interpolation   if bicubic, a bicubic interpolation over 4\u00d74 pixel neighborhood   if bilinear, a bilinear interpolation   if area, resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire\u2019-free results. But when the image is zoomed, it is similar to the INTER_NEAREST method.   if lanczos, a Lanczos interpolation over 8\u00d78 pixel neighborhood backend: str opencv or python, default opencv resampling backend   if opencv, image will be resampled using opencv   if python, image will be resampled using pure python. slower and nearest neighbor only Returns    - Raster Resampled",
 "func":1
 }
 ]
