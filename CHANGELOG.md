@@ -6,10 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] - 2020-12-11
+
 ### Added
 
 - add no data when saving raster
 - documentation for Raster attributes
+- add missing return type in save_raster
 
 ### Changed
 
