@@ -9,6 +9,8 @@ def test_raster() -> None:
     assert raster.resolution == (0.3, 0.3)
     assert raster.x_max == 120 + (0.3 * 4)
     assert raster.y_min == 20 - (0.3 * 4)
+    assert isinstance(raster[1:3, 1:3], np.ndarray)
+    assert raster[1:3, 1:3].shape == (2, 2, 2)
 
 
 def test_raster_operator() -> None:

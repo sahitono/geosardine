@@ -1,5 +1,7 @@
-from operator import add, iadd, imul, ipow, isub, itruediv, mul, pow, sub, truediv
-from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
+from operator import (add, iadd, imul, ipow, isub, itruediv, mul, pow, sub,
+                      truediv)
+from typing import (Any, Callable, Generator, Iterable, List, Optional, Tuple,
+                    Union)
 
 import cv2
 import numpy as np
@@ -127,6 +129,9 @@ class Raster(np.ndarray):
 
     def __new__(cls, array: np.ndarray, *args, **kwargs) -> "Raster":
         return array.view(cls)
+
+    def __getitem__(self, key: Union[int,Tuple[Any,...],slice]) -> np.ndarray:
+        return self.array.__getitem__(key)
 
     @property
     def array(self) -> np.ndarray:
@@ -459,7 +464,7 @@ class Raster(np.ndarray):
         resized_y_resolution = self.y_extent / height
         resized_x_resolution = self.x_extent / width
         resized = cv2.resize(
-            self.array, (height, width), interpolation=self.__cv2_resize_method[method]
+            self.array, (width, height), interpolation=self.__cv2_resize_method[method]
         )
         return Raster(
             resized,

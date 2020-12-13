@@ -31,5 +31,5 @@ __all__ = [
     "Raster",
 ]
 
-__version__ = "0.9.4"
+__version__ = "0.9.5"
 __author__ = "Sahit Tuntas Sadono"
