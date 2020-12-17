@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raster calculation using numba
 - add floordiv
 - parse raster from binary file
+- add shape ordering in reading raster from binary file
 - parse raster from raster file
 - doc script for linux
 - add pdoc3 in dev dependency
@@ -19,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Use numba to raster calculation
+- upper changed to top
+
+
+### Fixed
+
+- Restrict numpy version below 1.19.4, caused error in windows
 
 ## [0.9.5] - 2020-12-13
 

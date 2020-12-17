@@ -18,9 +18,9 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-numpy = "^1.18"
+numpy = ">=1.18,<1.19.4"
 affine = "^2.3.0"
-shapely = ">=1.6.4"
+shapely = ">=1.6.4,<2.0.0"
 tqdm = "^4.48.2"
 numba = "^0.51.2"
 click = "^7.1.2"
