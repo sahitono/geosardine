@@ -1,15 +1,59 @@
-from operator import (add, iadd, imul, ipow, isub, itruediv, mul, pow, sub,
-                      truediv)
-from typing import (Any, Callable, Generator, Iterable, List, Optional, Tuple,
-                    Union)
+from operator import (
+    add,
+    floordiv,
+    iadd,
+    ifloordiv,
+    imul,
+    ipow,
+    isub,
+    itruediv,
+    mul,
+    pow,
+    sub,
+    truediv,
+)
+from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
+import rasterio
 from affine import Affine
 from rasterio.crs import CRS
+from rasterio.plot import reshape_as_image
 
 from geosardine._geosardine import rowcol2xy, xy2rowcol
+from geosardine._raster_numba import __nb_raster_calc__, __nb_raster_ops
 from geosardine._utility import save_raster
+
+
+def __nb_raster_calc(
+    raster_a: "Raster", raster_b: "Raster", operator: str
+) -> np.ndarray:
+    """Wrapper for Raster calculation per pixel using numba jit.
+
+    Parameters
+    ----------
+    raster_a : Raster
+        first raster
+    raster_b : Raster
+        second raster
+    operator : str
+        operator name
+
+    Returns
+    -------
+    np.ndarray
+        calculated raster
+    """
+    return __nb_raster_calc__(
+        raster_a.array,
+        raster_b.array,
+        raster_a.transform,
+        ~raster_b.transform,
+        raster_a.no_data,
+        raster_b.no_data,
+        __nb_raster_ops[operator],
+    )
 
 
 class Raster(np.ndarray):
@@ -130,8 +174,33 @@ class Raster(np.ndarray):
     def __new__(cls, array: np.ndarray, *args, **kwargs) -> "Raster":
         return array.view(cls)
 
-    def __getitem__(self, key: Union[int,Tuple[Any,...],slice]) -> np.ndarray:
+    def __getitem__(self, key: Union[int, Tuple[Any, ...], slice]) -> np.ndarray:
         return self.array.__getitem__(key)
+
+    @classmethod
+    def from_binary(
+        cls,
+        binary_file: str,
+        shape: Tuple[int, ...],
+        resolution: Union[Tuple[float, float], List[float], float],
+        x_min: float,
+        y_max: float,
+        epsg: int = 4326,
+        no_data: Union[float, int] = -32767.0,
+        dtype: np.dtype = np.float32,
+        *args,
+        **kwargs,
+    ) -> "Raster":
+        _bin_array = np.fromfile(binary_file, dtype=dtype, *args, **kwargs).reshape(
+            shape
+        )
+        return cls(_bin_array, resolution, x_min, y_max, epsg=epsg, no_data=no_data)
+
+    @classmethod
+    def from_rasterfile(cls, raster_file: str) -> "Raster":
+        with rasterio.open(raster_file) as file:
+            _raster = reshape_as_image(file.read())
+        return cls(_raster, transform=file.transform, epsg=file.crs.to_epsg())
 
     @property
     def array(self) -> np.ndarray:
@@ -329,7 +398,12 @@ class Raster(np.ndarray):
             ):
                 _raster = operator(self.array, raster.array)
             else:
-                _raster = self.__raster_calc_by_pixel__(raster, operator)
+                # _raster = self.__raster_calc_by_pixel__(raster, operator)
+                _raster = __nb_raster_calc(
+                    self,
+                    raster,
+                    operator.__name__,
+                )
         elif isinstance(raster, np.ndarray):
             _raster = operator(self.array, raster)
         else:
@@ -349,6 +423,9 @@ class Raster(np.ndarray):
     def __truediv__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, truediv)
 
+    def __floordiv__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
+        return self.__raster_calculation__(raster, floordiv)
+
     def __pow__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, pow)
 
@@ -357,6 +434,11 @@ class Raster(np.ndarray):
 
     def __itruediv__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, itruediv)
+
+    def __ifloordiv__(
+        self, raster: Union[int, float, "Raster", np.ndarray]
+    ) -> "Raster":
+        return self.__raster_calculation__(raster, ifloordiv)
 
     def __imul__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
         return self.__raster_calculation__(raster, imul)

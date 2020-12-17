@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Raster calculation using numba
+- add floordiv
+- parse raster from binary file
+- parse raster from raster file
+- doc script for linux
+- add pdoc3 in dev dependency
+- add changelog.md in pyproject
+
+### Changed
+
+- Use numba to raster calculation
+
 ## [0.9.5] - 2020-12-13
 
 ### Fixed
@@ -86,3 +100,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Raster wrapper
 - Support multiple layer in raster calculation
+
+
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.9.5...HEAD
+[0.9.5]: https://github.com/sahitono/geosardine/compare/v0.9.4...v0.9.5
+[0.9.4]: https://github.com/sahitono/geosardine/compare/v0.9.3...v0.9.4
+[0.9.3]: https://github.com/sahitono/geosardine/compare/v0.9.2...v0.9.3
+[0.9.2]: https://github.com/sahitono/geosardine/compare/v0.9.0...v0.9.2
+[0.9.0]: https://github.com/sahitono/geosardine/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/sahitono/geosardine/releases/tag/v0.8.0
