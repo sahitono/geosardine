@@ -63,6 +63,18 @@ INDEX=[
 "doc":"Construct Raster from numpy array with spatial information. Support calculation between different raster Parameters      array : numpy array array of raster resolution : tuple, list, default None spatial resolution x_min : float, defaults to None left boundary of x-axis coordinate y_max : float, defaults to None upper boundary of y-axis coordinate x_max : float, defaults to None right boundary of x-axis coordinate y_min : float, defaults to None bottom boundary of y-axis coordinate epsg : int, defaults to 4326 EPSG code of reference system no_data : int or float, default None no data value Examples     >>> from geosardine import Raster >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7) >>> print(raster)  [1. 1.] [1. 1.] [1. 1.  1. 1.] [1. 1.] [1. 1.  1. 1.] [1. 1.] [1. 1. ] Raster can be resampled like this. (0.2,0.2) is the result's spatial resolution >>> resampled = raster.resample 0.2,0.2 >>> print(resampled.shape, resampled.resolution) (6, 6, 2) (0.2, 0.2) Raster can be resized >>> resized = raster.resize(height=16, width=16) >>> print(resized.shape, resized.resolution) (16, 16, 2) (0.07500000000000018, 0.07500000000000001)"
 },
 {
+"ref":"geosardine.Raster.from_binary",
+"url":0,
+"doc":"",
+"func":1
+},
+{
+"ref":"geosardine.Raster.from_rasterfile",
+"url":0,
+"doc":"",
+"func":1
+},
+{
 "ref":"geosardine.Raster.array",
 "url":0,
 "doc":"the numpy array of raster"
@@ -215,6 +227,18 @@ INDEX=[
 "ref":"geosardine.raster.Raster",
 "url":2,
 "doc":"Construct Raster from numpy array with spatial information. Support calculation between different raster Parameters      array : numpy array array of raster resolution : tuple, list, default None spatial resolution x_min : float, defaults to None left boundary of x-axis coordinate y_max : float, defaults to None upper boundary of y-axis coordinate x_max : float, defaults to None right boundary of x-axis coordinate y_min : float, defaults to None bottom boundary of y-axis coordinate epsg : int, defaults to 4326 EPSG code of reference system no_data : int or float, default None no data value Examples     >>> from geosardine import Raster >>> raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7) >>> print(raster)  [1. 1.] [1. 1.] [1. 1.  1. 1.] [1. 1.] [1. 1.  1. 1.] [1. 1.] [1. 1. ] Raster can be resampled like this. (0.2,0.2) is the result's spatial resolution >>> resampled = raster.resample 0.2,0.2 >>> print(resampled.shape, resampled.resolution) (6, 6, 2) (0.2, 0.2) Raster can be resized >>> resized = raster.resize(height=16, width=16) >>> print(resized.shape, resized.resolution) (16, 16, 2) (0.07500000000000018, 0.07500000000000001)"
+},
+{
+"ref":"geosardine.raster.Raster.from_binary",
+"url":2,
+"doc":"",
+"func":1
+},
+{
+"ref":"geosardine.raster.Raster.from_rasterfile",
+"url":2,
+"doc":"",
+"func":1
 },
 {
 "ref":"geosardine.raster.Raster.array",
