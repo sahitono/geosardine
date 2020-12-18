@@ -253,7 +253,12 @@ class Raster(np.ndarray):
         with rasterio.open(raster_file) as file:
             _raster = reshape_as_image(file.read())
 
-        return cls(_raster, transform=file.transform, epsg=file.crs.to_epsg())
+        return cls(
+            _raster,
+            transform=file.transform,
+            epsg=file.crs.to_epsg(),
+            no_data=file.nodatavals[0],
+        )
 
     @property
     def array(self) -> np.ndarray:

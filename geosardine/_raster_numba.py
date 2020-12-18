@@ -8,9 +8,23 @@ import numpy as np
 def __nb_xy2rowcol(
     xy: Tuple[float, float], transform: Tuple[float, ...]
 ) -> Tuple[float, float]:
+    """numba version of xy2rowcol
+
+    Parameters
+    ----------
+    xy : Tuple[float, float]
+        coordinate
+    transform : Tuple[float, ...]
+        affine parameter as tuple
+
+    Returns
+    -------
+    Tuple[float, float]
+        row, column
+    """
     x, y = xy
     a, b, c, d, e, f, _, _, _ = transform
-    return x * a + y * b + c, x * d + y * e + f
+    return x * d + y * e + f, x * a + y * b + c
 
 
 @nb.njit("UniTuple(f8,2)(UniTuple(f8,2),UniTuple(f8,9))")
@@ -18,7 +32,8 @@ def __nb_rowcol2xy(
     rowcol: Tuple[float, float], transform: Tuple[float, ...]
 ) -> Tuple[float, float]:
     row, col = rowcol
-    return __nb_xy2rowcol((col, row), transform)
+    y, x = __nb_xy2rowcol((col, row), transform)
+    return x, y
 
 
 @nb.njit()
