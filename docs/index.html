@@ -33,7 +33,9 @@ Collection of spatial operation which i occasionally use written in python:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+
 <a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\__init__.py#L0-L34" class="git-link">Browse git</a>
+
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 Spatial operations extend fiona and rasterio.
@@ -864,7 +866,6 @@ Raster can be resized
             w_index = shape_order.index(&#34;w&#34;)
 
             _bin_array = np.transpose(_bin_array, (h_index, w_index, c_index))
-
         return cls(_bin_array, resolution, x_min, y_max, epsg=epsg, no_data=no_data)
 
     @classmethod

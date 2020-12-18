@@ -75,6 +75,18 @@ INDEX=[
 "func":1
 },
 {
+"ref":"geosardine.Raster.from_binary",
+"url":0,
+"doc":"",
+"func":1
+},
+{
+"ref":"geosardine.Raster.from_rasterfile",
+"url":0,
+"doc":"",
+"func":1
+},
+{
 "ref":"geosardine.Raster.array",
 "url":0,
 "doc":"the numpy array of raster"
@@ -238,6 +250,18 @@ INDEX=[
 "ref":"geosardine.raster.Raster.from_rasterfile",
 "url":2,
 "doc":"Get raster from supported gdal raster file Parameters    - raster_file : str location of raser file Returns    - Raster",
+"func":1
+},
+{
+"ref":"geosardine.raster.Raster.from_binary",
+"url":2,
+"doc":"",
+"func":1
+},
+{
+"ref":"geosardine.raster.Raster.from_rasterfile",
+"url":2,
+"doc":"",
 "func":1
 },
 {
