@@ -33,9 +33,7 @@ Collection of spatial operation which i occasionally use written in python:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\__init__.py#L0-L34" class="git-link">Browse git</a>
-
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\__init__.py#L0-L34" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 Spatial operations extend fiona and rasterio.
@@ -70,7 +68,7 @@ __all__ = [
     &#34;Raster&#34;,
 ]
 
-__version__ = &#34;0.10.0&#34;
+__version__ = &#34;0.10.2&#34;
 __author__ = &#34;Sahit Tuntas Sadono&#34;</code></pre>
 </details>
 </section>
@@ -123,7 +121,7 @@ nearest value
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\_geosardine.py#L106-L147" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\_geosardine.py#L117-L158" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def drape2raster(
     xy: List[float],
@@ -195,7 +193,7 @@ nearest value
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\_geosardine.py#L216-L270" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\_geosardine.py#L227-L281" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def drape_geojson(
     features: Union[Iterable[Dict], fiona.Collection],
@@ -280,7 +278,7 @@ nearest value
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\_geosardine.py#L161-L213" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\_geosardine.py#L172-L224" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def drape_shapely(
     geometry: Union[Polygon, LineString],
@@ -360,7 +358,7 @@ faster, less accurate</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\_utility.py#L74-L101" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\_utility.py#L83-L110" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@singledispatch
 def harvesine_distance(
@@ -393,7 +391,7 @@ def harvesine_distance(
 </details>
 </dd>
 <dt id="geosardine.rowcol2xy"><code class="name flex">
-<span>def <span class="ident">rowcol2xy</span></span>(<span>row_col: Union[Tuple[int, int], List[int]], affine: affine.Affine) ‑> Tuple[float, float]</span>
+<span>def <span class="ident">rowcol2xy</span></span>(<span>row_col: Union[Tuple[int, int], List[int]], affine: affine.Affine, offset: str = 'center') ‑> Tuple[float, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert image coordinate to geographic coordinate
@@ -405,6 +403,8 @@ Parameters</p>
 <dt><strong><code>affine</code></strong> :&ensp;<code>Affine</code></dt>
 <dd>affine parameter from rasterio.transform
 or create it with affine.Affine <a href="https://pypi.org/project/affine/">https://pypi.org/project/affine/</a></dd>
+<dt><strong><code>offset</code></strong> :&ensp;<code>offset</code></dt>
+<dd>center, upper left, upper right, bottom left, bottom right</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -414,10 +414,10 @@ or create it with affine.Affine <a href="https://pypi.org/project/affine/">https
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\_geosardine.py#L45-L65" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\_geosardine.py#L53-L76" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rowcol2xy(
-    row_col: Union[Tuple[int, int], List[int]], affine: Affine
+    row_col: Union[Tuple[int, int], List[int]], affine: Affine, offset: str = &#34;center&#34;
 ) -&gt; Tuple[float, float]:
     &#34;&#34;&#34;
     Convert image coordinate to geographic coordinate
@@ -428,6 +428,8 @@ or create it with affine.Affine <a href="https://pypi.org/project/affine/">https
     affine : Affine
         affine parameter from rasterio.transform
         or create it with affine.Affine https://pypi.org/project/affine/
+    offset : offset
+        center, upper left, upper right, bottom left, bottom right
 
     Returns
     -------
@@ -435,8 +437,9 @@ or create it with affine.Affine <a href="https://pypi.org/project/affine/">https
         2d geographic or projected coordinate
 
     &#34;&#34;&#34;
+    r_op, c_op = offset_operator[offset]
     row, col = row_col
-    return affine * (col, row)</code></pre>
+    return affine * (col + c_op, row + r_op)</code></pre>
 </details>
 </dd>
 <dt id="geosardine.spatial_join"><code class="name flex">
@@ -460,7 +463,7 @@ Parameters</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\_geosardine.py#L273-L323" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\_geosardine.py#L284-L334" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def spatial_join(
     target: fiona.Collection, join: fiona.Collection
@@ -538,7 +541,7 @@ slower, more accurate</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\_utility.py#L140-L166" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\_utility.py#L149-L175" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@singledispatch
 def vincenty_distance(
@@ -596,7 +599,7 @@ nearest value
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\_geosardine.py#L13-L42" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\_geosardine.py#L21-L50" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def xy2rowcol(
     xy: Union[Tuple[float, float], List[float]],
@@ -686,7 +689,7 @@ Raster can be resized
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L59-L735" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L29-L769" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Raster(np.ndarray):
     &#34;&#34;&#34;
@@ -792,6 +795,7 @@ Raster can be resized
             )
         elif isinstance(transform, Affine):
             self.transform = transform
+            self.resolution = (transform[0], abs(transform[4]))
         else:
             raise ValueError(
                 &#34;Please define affine parameter or resolution and xmin ymax&#34;
@@ -866,6 +870,7 @@ Raster can be resized
             w_index = shape_order.index(&#34;w&#34;)
 
             _bin_array = np.transpose(_bin_array, (h_index, w_index, c_index))
+
         return cls(_bin_array, resolution, x_min, y_max, epsg=epsg, no_data=no_data)
 
     @classmethod
@@ -884,7 +889,12 @@ Raster can be resized
         with rasterio.open(raster_file) as file:
             _raster = reshape_as_image(file.read())
 
-        return cls(_raster, transform=file.transform, epsg=file.crs.to_epsg())
+        return cls(
+            _raster,
+            transform=file.transform,
+            epsg=file.crs.to_epsg(),
+            no_data=file.nodatavals[0],
+        )
 
     @property
     def array(self) -&gt; np.ndarray:
@@ -1022,20 +1032,23 @@ Raster can be resized
                 &#34;&#34;&#34;
             )
 
-    def rowcol2xy(self, row: int, col: int) -&gt; Tuple[float, float]:
+    def rowcol2xy(
+        self, row: int, col: int, offset: str = &#34;center&#34;
+    ) -&gt; Tuple[float, float]:
         &#34;&#34;&#34;Convert image coordinate (row, col) to real world coordinate
 
         Parameters
         ----------
         row : int
         col : int
+        offset : str
 
         Returns
         -------
         Tuple[float, float]
             X,Y coordinate in real world
         &#34;&#34;&#34;
-        return rowcol2xy((row, col), self.transform)
+        return rowcol2xy((row, col), self.transform, offset=offset)
 
     def xy2rowcol(self, x: float, y: float) -&gt; Tuple[int, int]:
         &#34;&#34;&#34;Convert real world coordinate to image coordinate (row, col)
@@ -1075,6 +1088,55 @@ Raster can be resized
                     _raster[row, col] = self.no_data
         return _raster
 
+    def __nb_raster_calc(
+        self, raster_a: &#34;Raster&#34;, raster_b: &#34;Raster&#34;, operator: str
+    ) -&gt; np.ndarray:
+        &#34;&#34;&#34;Wrapper for Raster calculation per pixel using numba jit.
+
+        Parameters
+        ----------
+        raster_a : Raster
+            first raster
+        raster_b : Raster
+            second raster
+        operator : str
+            operator name
+
+        Returns
+        -------
+        np.ndarray
+            calculated raster
+        &#34;&#34;&#34;
+        if raster_b.layers != raster_a.layers:
+            raise ValueError(
+                f&#34;&#34;&#34;
+                    Cant calculate between different layer shape.
+                    first raster layer = {raster_a.layers}
+                    second raster layer = {raster_b.layers}
+                    &#34;&#34;&#34;
+            )
+
+        _a = raster_a.array
+        if self.layers == 1 and len(raster_a.shape) != 3:
+            _a = raster_a.array.reshape(raster_a.rows, raster_a.cols, 1)
+
+        _b = raster_b.array
+        if self.layers == 1 and len(raster_b.shape) != 3:
+            _b = raster_b.array.reshape(raster_b.rows, raster_b.cols, 1)
+
+        out = __nb_raster_calc__(
+            _a,
+            _b,
+            tuple(raster_a.transform),
+            tuple(~raster_b.transform),
+            raster_a.no_data,
+            raster_b.no_data,
+            nb_raster_ops[operator],
+        )
+        if out.shape != raster_a.shape:
+            out = out.reshape(raster_a.shape)
+        return out
+
     def __raster_calculation__(
         self,
         raster: Union[int, float, &#34;Raster&#34;, np.ndarray],
@@ -1094,7 +1156,8 @@ Raster can be resized
                 _raster = operator(self.array, raster.array)
             else:
                 # _raster = self.__raster_calc_by_pixel__(raster, operator)
-                _raster = __nb_raster_calc(
+
+                _raster = self.__nb_raster_calc(
                     self,
                     raster,
                     operator.__name__,
@@ -1152,7 +1215,7 @@ Raster can be resized
         for i in range(10):
             yield _iter[i]
 
-    def save(self, file_name: str) -&gt; None:
+    def save(self, file_name: str, compress: bool = False) -&gt; None:
         &#34;&#34;&#34;Save raster as geotiff
 
         Parameters
@@ -1161,7 +1224,12 @@ Raster can be resized
             output filename
         &#34;&#34;&#34;
         save_raster(
-            file_name, self.array, self.crs, affine=self.transform, nodata=self.no_data
+            file_name,
+            self.array,
+            self.crs,
+            affine=self.transform,
+            nodata=self.no_data,
+            compress=compress,
         )
 
     def resize(
@@ -1406,7 +1474,7 @@ Raster can be resized
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L180-L238" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L151-L209" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def from_binary(
@@ -1487,7 +1555,7 @@ def from_binary(
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L240-L256" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L211-L232" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def from_rasterfile(cls, raster_file: str) -&gt; &#34;Raster&#34;:
@@ -1505,7 +1573,12 @@ def from_rasterfile(cls, raster_file: str) -&gt; &#34;Raster&#34;:
     with rasterio.open(raster_file) as file:
         _raster = reshape_as_image(file.read())
 
-    return cls(_raster, transform=file.transform, epsg=file.crs.to_epsg())</code></pre>
+    return cls(
+        _raster,
+        transform=file.transform,
+        epsg=file.crs.to_epsg(),
+        no_data=file.nodatavals[0],
+    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -1517,7 +1590,7 @@ def from_rasterfile(cls, raster_file: str) -&gt; &#34;Raster&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L258-L261" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L234-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def array(self) -&gt; np.ndarray:
@@ -1531,7 +1604,7 @@ def array(self) -&gt; np.ndarray:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L302-L305" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L278-L281" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def bottom(self) -&gt; float:
@@ -1545,7 +1618,7 @@ def bottom(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L312-L315" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L288-L291" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def cols(self) -&gt; int:
@@ -1559,7 +1632,7 @@ def cols(self) -&gt; int:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L340-L343" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L316-L319" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def is_geographic(self) -&gt; bool:
@@ -1573,7 +1646,7 @@ def is_geographic(self) -&gt; bool:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L335-L338" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L311-L314" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def is_projected(self) -&gt; bool:
@@ -1587,7 +1660,7 @@ def is_projected(self) -&gt; bool:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L317-L323" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L293-L299" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def layers(self) -&gt; int:
@@ -1604,7 +1677,7 @@ def layers(self) -&gt; int:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L292-L295" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L268-L271" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def left(self) -&gt; float:
@@ -1618,7 +1691,7 @@ def left(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L297-L300" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L273-L276" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def right(self) -&gt; float:
@@ -1632,7 +1705,7 @@ def right(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L307-L310" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L283-L286" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def rows(self) -&gt; int:
@@ -1646,7 +1719,7 @@ def rows(self) -&gt; int:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L287-L290" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L263-L266" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def top(self) -&gt; float:
@@ -1660,7 +1733,7 @@ def top(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L325-L328" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L301-L304" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def x_extent(self) -&gt; float:
@@ -1674,7 +1747,7 @@ def x_extent(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L277-L280" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L253-L256" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def x_max(self) -&gt; float:
@@ -1688,7 +1761,7 @@ def x_max(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L267-L270" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L243-L246" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def x_min(self) -&gt; float:
@@ -1702,7 +1775,7 @@ def x_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L330-L333" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L306-L309" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def y_extent(self) -&gt; float:
@@ -1716,7 +1789,7 @@ def y_extent(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L272-L275" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L248-L251" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def y_max(self) -&gt; float:
@@ -1730,7 +1803,7 @@ def y_max(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L282-L285" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L258-L261" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def y_min(self) -&gt; float:
@@ -1777,7 +1850,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L572-L607" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L606-L641" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def resample(
     self,
@@ -1855,7 +1928,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L536-L570" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L570-L604" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def resize(
     self, height: int, width: int, method: str = &#34;bilinear&#34;, backend: str = &#34;opencv&#34;
@@ -1895,7 +1968,7 @@ def y_min(self) -&gt; float:
 </details>
 </dd>
 <dt id="geosardine.Raster.rowcol2xy"><code class="name flex">
-<span>def <span class="ident">rowcol2xy</span></span>(<span>self, row: int, col: int) ‑> Tuple[float, float]</span>
+<span>def <span class="ident">rowcol2xy</span></span>(<span>self, row: int, col: int, offset: str = 'center') ‑> Tuple[float, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert image coordinate (row, col) to real world coordinate</p>
@@ -1904,6 +1977,8 @@ def y_min(self) -&gt; float:
 <dt><strong><code>row</code></strong> :&ensp;<code>int</code></dt>
 <dd>&nbsp;</dd>
 <dt><strong><code>col</code></strong> :&ensp;<code>int</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>offset</code></strong> :&ensp;<code>str</code></dt>
 <dd>&nbsp;</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -1914,26 +1989,29 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L394-L407" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L370-L386" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def rowcol2xy(self, row: int, col: int) -&gt; Tuple[float, float]:
+<pre><code class="python">def rowcol2xy(
+    self, row: int, col: int, offset: str = &#34;center&#34;
+) -&gt; Tuple[float, float]:
     &#34;&#34;&#34;Convert image coordinate (row, col) to real world coordinate
 
     Parameters
     ----------
     row : int
     col : int
+    offset : str
 
     Returns
     -------
     Tuple[float, float]
         X,Y coordinate in real world
     &#34;&#34;&#34;
-    return rowcol2xy((row, col), self.transform)</code></pre>
+    return rowcol2xy((row, col), self.transform, offset=offset)</code></pre>
 </details>
 </dd>
 <dt id="geosardine.Raster.save"><code class="name flex">
-<span>def <span class="ident">save</span></span>(<span>self, file_name: str) ‑> NoneType</span>
+<span>def <span class="ident">save</span></span>(<span>self, file_name: str, compress: bool = False) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Save raster as geotiff</p>
@@ -1945,9 +2023,9 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L524-L534" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L553-L568" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def save(self, file_name: str) -&gt; None:
+<pre><code class="python">def save(self, file_name: str, compress: bool = False) -&gt; None:
     &#34;&#34;&#34;Save raster as geotiff
 
     Parameters
@@ -1956,7 +2034,12 @@ def y_min(self) -&gt; float:
         output filename
     &#34;&#34;&#34;
     save_raster(
-        file_name, self.array, self.crs, affine=self.transform, nodata=self.no_data
+        file_name,
+        self.array,
+        self.crs,
+        affine=self.transform,
+        nodata=self.no_data,
+        compress=compress,
     )</code></pre>
 </details>
 </dd>
@@ -1980,7 +2063,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L409-L423" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L388-L402" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def xy2rowcol(self, x: float, y: float) -&gt; Tuple[int, int]:
     &#34;&#34;&#34;Convert real world coordinate to image coordinate (row, col)
@@ -2019,7 +2102,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/81f3fc31e555f85048557a221b1e75b0540568e0/geosardine\raster.py#L366-L392" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/a18ea4604a3c5d3476d9b41864899804bb78e23b/geosardine\raster.py#L342-L368" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def xy_value(self, x: float, y: float) -&gt; Union[float, int, np.ndarray]:
     &#34;&#34;&#34;Obtain pixel value by geodetic or projected coordinate

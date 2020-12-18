@@ -12,7 +12,7 @@ INDEX=[
 {
 "ref":"geosardine.rowcol2xy",
 "url":0,
-"doc":"Convert image coordinate to geographic coordinate Parameters      row_col : tuple, list image coordinate in row, column affine : Affine affine parameter from rasterio.transform or create it with affine.Affine https: pypi.org/project/affine/ Returns    - tuple 2d geographic or projected coordinate",
+"doc":"Convert image coordinate to geographic coordinate Parameters      row_col : tuple, list image coordinate in row, column affine : Affine affine parameter from rasterio.transform or create it with affine.Affine https: pypi.org/project/affine/ offset : offset center, upper left, upper right, bottom left, bottom right Returns    - tuple 2d geographic or projected coordinate",
 "func":1
 },
 {
@@ -72,18 +72,6 @@ INDEX=[
 "ref":"geosardine.Raster.from_rasterfile",
 "url":0,
 "doc":"Get raster from supported gdal raster file Parameters    - raster_file : str location of raser file Returns    - Raster",
-"func":1
-},
-{
-"ref":"geosardine.Raster.from_binary",
-"url":0,
-"doc":"",
-"func":1
-},
-{
-"ref":"geosardine.Raster.from_rasterfile",
-"url":0,
-"doc":"",
 "func":1
 },
 {
@@ -175,7 +163,7 @@ INDEX=[
 {
 "ref":"geosardine.Raster.rowcol2xy",
 "url":0,
-"doc":"Convert image coordinate (row, col) to real world coordinate Parameters      row : int col : int Returns    - Tuple[float, float] X,Y coordinate in real world",
+"doc":"Convert image coordinate (row, col) to real world coordinate Parameters      row : int col : int offset : str Returns    - Tuple[float, float] X,Y coordinate in real world",
 "func":1
 },
 {
@@ -250,18 +238,6 @@ INDEX=[
 "ref":"geosardine.raster.Raster.from_rasterfile",
 "url":2,
 "doc":"Get raster from supported gdal raster file Parameters    - raster_file : str location of raser file Returns    - Raster",
-"func":1
-},
-{
-"ref":"geosardine.raster.Raster.from_binary",
-"url":2,
-"doc":"",
-"func":1
-},
-{
-"ref":"geosardine.raster.Raster.from_rasterfile",
-"url":2,
-"doc":"",
 "func":1
 },
 {
@@ -353,7 +329,7 @@ INDEX=[
 {
 "ref":"geosardine.raster.Raster.rowcol2xy",
 "url":2,
-"doc":"Convert image coordinate (row, col) to real world coordinate Parameters      row : int col : int Returns    - Tuple[float, float] X,Y coordinate in real world",
+"doc":"Convert image coordinate (row, col) to real world coordinate Parameters      row : int col : int offset : str Returns    - Tuple[float, float] X,Y coordinate in real world",
 "func":1
 },
 {

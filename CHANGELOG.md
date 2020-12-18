@@ -124,9 +124,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support multiple layer in raster calculation
 
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.10.1...HEAD
-[0.10.2]: https://github.com/sahitono/geosardine/compare/v0.10.0...v0.10.2
-[0.10.0]: https://github.com/sahitono/geosardine/compare/v0.9.5...v0.10.0
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.10.2...HEAD
+[0.10.2]: https://github.com/sahitono/geosardine/compare/v0.9.5...v0.10.2
 [0.9.5]: https://github.com/sahitono/geosardine/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/sahitono/geosardine/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/sahitono/geosardine/compare/v0.9.2...v0.9.3
