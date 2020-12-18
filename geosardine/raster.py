@@ -1,7 +1,18 @@
-from operator import (add, floordiv, iadd, ifloordiv, imul, ipow, isub,
-                      itruediv, mul, pow, sub, truediv)
-from typing import (Any, Callable, Generator, Iterable, List, Optional, Tuple,
-                    Union)
+from operator import (
+    add,
+    floordiv,
+    iadd,
+    ifloordiv,
+    imul,
+    ipow,
+    isub,
+    itruediv,
+    mul,
+    pow,
+    sub,
+    truediv,
+)
+from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np

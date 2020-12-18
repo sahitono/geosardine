@@ -9,12 +9,12 @@ import rasterio
 from affine import Affine
 from shapely.geometry import LineString, Polygon, shape
 
-offset_operator: Dict[str, Tuple[float,float]] = {
+offset_operator: Dict[str, Tuple[float, float]] = {
     "center": (0.5, 0.5),
-    "ul": (0., 0.),
-    "bl": (1., 0.),
-    "ur": (0., 1.),
-    "br": (1., 1.),
+    "ul": (0.0, 0.0),
+    "bl": (1.0, 0.0),
+    "ur": (0.0, 1.0),
+    "br": (1.0, 1.0),
 }
 
 
