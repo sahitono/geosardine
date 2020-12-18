@@ -536,7 +536,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "9913ee8b19d84bfa9e26c3acfb6a6f047d535aa608b1a4e792f65db0777e4649"
+content-hash = "0b69c9869aeb93a1fb48dffa965df56543863658a3f7f57753bdf82b6297b0a3"
 
 [metadata.files]
 affine = [

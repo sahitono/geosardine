@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2] - 2020-12-18
+
+### Fixed
+
+- Flipped xy2rowcol numba
+- fixed no data in Raster.from_rasterfile
+- define resolution, when input is affine in Raster
+- raster calculator error, caused by numba typing
+- fixed algorithm with offset for raster calculator
+
+### Added
+
+- save with lzw compression
 ## [0.10.0] - 2020-12-17
 
 ### Added
@@ -111,7 +124,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support multiple layer in raster calculation
 
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.10.1...HEAD
+[0.10.2]: https://github.com/sahitono/geosardine/compare/v0.10.0...v0.10.2
 [0.10.0]: https://github.com/sahitono/geosardine/compare/v0.9.5...v0.10.0
 [0.9.5]: https://github.com/sahitono/geosardine/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/sahitono/geosardine/compare/v0.9.3...v0.9.4
