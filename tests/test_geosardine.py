@@ -1,6 +1,5 @@
 import numpy as np
 from affine import Affine
-
 from geosardine import (
     drape2raster,
     harvesine_distance,
@@ -14,7 +13,7 @@ def test_convert():
     col, row = 0, 100
     affine_params = Affine.from_gdal(*(-237481.5, 425.0, 0.0, 237536.4, 0.0, -425.0))
 
-    assert (-237481.5, 195036.4) == rowcol2xy((row, col), affine_params)
+    assert (-237481.5, 195036.4) == rowcol2xy((row, col), affine_params, offset="ul")
     assert (row, col) == xy2rowcol(
         (-237481.5, 195036.4), affine_params, round_function=round
     )
