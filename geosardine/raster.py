@@ -26,6 +26,36 @@ from geosardine._raster_numba import __nb_raster_calc__, nb_raster_ops
 from geosardine._utility import save_raster
 
 
+def __nb_raster_calc(
+    raster_a: "Raster", raster_b: "Raster", operator: str
+) -> np.ndarray:
+    """Wrapper for Raster calculation per pixel using numba jit.
+
+    Parameters
+    ----------
+    raster_a : Raster
+        first raster
+    raster_b : Raster
+        second raster
+    operator : str
+        operator name
+
+    Returns
+    -------
+    np.ndarray
+        calculated raster
+    """
+    return __nb_raster_calc__(
+        raster_a.array,
+        raster_b.array,
+        raster_a.transform,
+        ~raster_b.transform,
+        raster_a.no_data,
+        raster_b.no_data,
+        __nb_raster_ops[operator],
+    )
+
+
 class Raster(np.ndarray):
     """
     Construct Raster from numpy array with spatial information.
