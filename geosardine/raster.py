@@ -22,7 +22,7 @@ from rasterio.crs import CRS
 from rasterio.plot import reshape_as_image
 
 from geosardine._geosardine import rowcol2xy, xy2rowcol
-from geosardine._raster_numba import __nb_raster_calc__, __nb_raster_ops
+from geosardine._raster_numba import __nb_raster_calc__, nb_raster_ops
 from geosardine._utility import save_raster
 
 
@@ -160,6 +160,7 @@ class Raster(np.ndarray):
             )
         elif isinstance(transform, Affine):
             self.transform = transform
+            self.resolution = (transform[0], abs(transform[4]))
         else:
             raise ValueError(
                 "Please define affine parameter or resolution and xmin ymax"
@@ -253,7 +254,12 @@ class Raster(np.ndarray):
         with rasterio.open(raster_file) as file:
             _raster = reshape_as_image(file.read())
 
-        return cls(_raster, transform=file.transform, epsg=file.crs.to_epsg())
+        return cls(
+            _raster,
+            transform=file.transform,
+            epsg=file.crs.to_epsg(),
+            no_data=file.nodatavals[0],
+        )
 
     @property
     def array(self) -> np.ndarray:
@@ -391,20 +397,23 @@ class Raster(np.ndarray):
                 """
             )
 
-    def rowcol2xy(self, row: int, col: int) -> Tuple[float, float]:
+    def rowcol2xy(
+        self, row: int, col: int, offset: str = "center"
+    ) -> Tuple[float, float]:
         """Convert image coordinate (row, col) to real world coordinate
 
         Parameters
         ----------
         row : int
         col : int
+        offset : str
 
         Returns
         -------
         Tuple[float, float]
             X,Y coordinate in real world
         """
-        return rowcol2xy((row, col), self.transform)
+        return rowcol2xy((row, col), self.transform, offset=offset)
 
     def xy2rowcol(self, x: float, y: float) -> Tuple[int, int]:
         """Convert real world coordinate to image coordinate (row, col)
@@ -444,6 +453,55 @@ class Raster(np.ndarray):
                     _raster[row, col] = self.no_data
         return _raster
 
+    def __nb_raster_calc(
+        self, raster_a: "Raster", raster_b: "Raster", operator: str
+    ) -> np.ndarray:
+        """Wrapper for Raster calculation per pixel using numba jit.
+
+        Parameters
+        ----------
+        raster_a : Raster
+            first raster
+        raster_b : Raster
+            second raster
+        operator : str
+            operator name
+
+        Returns
+        -------
+        np.ndarray
+            calculated raster
+        """
+        if raster_b.layers != raster_a.layers:
+            raise ValueError(
+                f"""
+                    Cant calculate between different layer shape.
+                    first raster layer = {raster_a.layers}
+                    second raster layer = {raster_b.layers}
+                    """
+            )
+
+        _a = raster_a.array
+        if self.layers == 1 and len(raster_a.shape) != 3:
+            _a = raster_a.array.reshape(raster_a.rows, raster_a.cols, 1)
+
+        _b = raster_b.array
+        if self.layers == 1 and len(raster_b.shape) != 3:
+            _b = raster_b.array.reshape(raster_b.rows, raster_b.cols, 1)
+
+        out = __nb_raster_calc__(
+            _a,
+            _b,
+            tuple(raster_a.transform),
+            tuple(~raster_b.transform),
+            raster_a.no_data,
+            raster_b.no_data,
+            nb_raster_ops[operator],
+        )
+        if out.shape != raster_a.shape:
+            out = out.reshape(raster_a.shape)
+        return out
+
     def __raster_calculation__(
         self,
         raster: Union[int, float, "Raster", np.ndarray],
@@ -463,7 +521,8 @@ class Raster(np.ndarray):
                 _raster = operator(self.array, raster.array)
             else:
                 # _raster = self.__raster_calc_by_pixel__(raster, operator)
-                _raster = __nb_raster_calc(
+
+                _raster = self.__nb_raster_calc(
                     self,
                     raster,
                     operator.__name__,
@@ -521,7 +580,7 @@ class Raster(np.ndarray):
         for i in range(10):
             yield _iter[i]
 
-    def save(self, file_name: str) -> None:
+    def save(self, file_name: str, compress: bool = False) -> None:
         """Save raster as geotiff
 
         Parameters
@@ -530,7 +589,12 @@ class Raster(np.ndarray):
             output filename
         """
         save_raster(
-            file_name, self.array, self.crs, affine=self.transform, nodata=self.no_data
+            file_name,
+            self.array,
+            self.crs,
+            affine=self.transform,
+            nodata=self.no_data,
+            compress=compress,
         )
 
     def resize(

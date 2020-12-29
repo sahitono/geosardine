@@ -9,6 +9,14 @@ import rasterio
 from affine import Affine
 from shapely.geometry import LineString, Polygon, shape
 
+offset_operator: Dict[str, Tuple[float, float]] = {
+    "center": (0.5, 0.5),
+    "ul": (0.0, 0.0),
+    "bl": (1.0, 0.0),
+    "ur": (0.0, 1.0),
+    "br": (1.0, 1.0),
+}
+
 
 def xy2rowcol(
     xy: Union[Tuple[float, float], List[float]],
@@ -43,7 +51,7 @@ def xy2rowcol(
 
 
 def rowcol2xy(
-    row_col: Union[Tuple[int, int], List[int]], affine: Affine
+    row_col: Union[Tuple[int, int], List[int]], affine: Affine, offset: str = "center"
 ) -> Tuple[float, float]:
     """
     Convert image coordinate to geographic coordinate
@@ -54,6 +62,8 @@ def rowcol2xy(
     affine : Affine
         affine parameter from rasterio.transform
         or create it with affine.Affine https://pypi.org/project/affine/
+    offset : offset
+        center, upper left, upper right, bottom left, bottom right
 
     Returns
     -------
@@ -61,8 +71,9 @@ def rowcol2xy(
         2d geographic or projected coordinate
 
     """
+    r_op, c_op = offset_operator[offset]
     row, col = row_col
-    return affine * (col, row)
+    return affine * (col + c_op, row + r_op)
 
 
 def _d2r_interpolate(

@@ -24,13 +24,20 @@ def save_raster(
     coordinate_array: Optional[np.ndarray] = None,
     affine: Optional[Affine] = None,
     nodata: Union[None, float, int] = None,
+    compress: bool = False,
 ) -> None:
-    height, width = value_array.shape
-    layers = 1
+
     if len(value_array.shape) == 3:
         height, width, layers = value_array.shape
-    if layers == 1:
+    else:
+        height, width = value_array.shape
+        layers = 1
+
         value_array = value_array.reshape(height, width, layers)
+
+    _compress = None
+    if compress:
+        _compress = "lzw"
 
     if affine is None:
         if coordinate_array is None:
@@ -51,6 +58,7 @@ def save_raster(
             crs=crs,
             transform=affine,
             nodata=nodata,
+            compress=_compress,
         ) as raster:
             for layer in range(layers):
                 raster.write(value_array[:, :, layer], layer + 1)
@@ -65,6 +73,7 @@ def save_raster(
             dtype=value_array.dtype,
             crs=crs,
             transform=affine,
+            compress=_compress,
         ) as raster:
             for layer in range(layers):
                 raster.write(value_array[:, :, layer], layer + 1)

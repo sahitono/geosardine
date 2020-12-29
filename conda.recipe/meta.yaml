@@ -1,5 +1,5 @@
 {% set name = "geosardine" %}
-{% set version = "0.10.0" %}
+{% set version = "0.10.2" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 38141b5ad431405ebf560906a55b329a8fd03b609d543c38acc485cd20748c55
+  sha256: 50d5051b292ba3468c1f862b35177cfc78ecc34d621bd323f3c5dfb02adaa2dc
 
 build:
   noarch: python
