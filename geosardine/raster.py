@@ -415,7 +415,7 @@ class Raster(np.ndarray):
         """
         return rowcol2xy((row, col), self.transform, offset=offset)
 
-    def xy2rowcol(self, x: float, y: float) -> Tuple[int, int]:
+    def xy2rowcol(self, x: float, y: float, offset="center") -> Tuple[int, int]:
         """Convert real world coordinate to image coordinate (row, col)
 
         Parameters
@@ -428,8 +428,8 @@ class Raster(np.ndarray):
         Tuple[int, int]
             row, column
         """
-        _row, _col = xy2rowcol((x, y), self.transform)
-        return int(_row), int(_col)
+        _row, _col = xy2rowcol((x, y), self.transform,offset=offset, interpolate=True)
+        return _row, _col
 
     def __raster_calc_by_pixel__(
         self,
