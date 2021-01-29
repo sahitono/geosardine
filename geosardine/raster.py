@@ -428,7 +428,7 @@ class Raster(np.ndarray):
         Tuple[int, int]
             row, column
         """
-        _row, _col = xy2rowcol((x, y), self.transform,offset=offset, interpolate=True)
+        _row, _col = xy2rowcol((x, y), self.transform, offset=offset, interpolate=True)
         return _row, _col
 
     def __raster_calc_by_pixel__(

@@ -26,9 +26,7 @@ def test_drape():
     affine_params = Affine.from_gdal(*(-237481.5, 425.0, 0.0, 237536.4, 0.0, -425.0))
     dsm = np.arange(width * height).reshape((height, width))
     assert (x, y, 185900) == drape2raster((x, y), dsm, affine_params)
-    assert (x, y, 186830) == drape2raster(
-        [x, y], dsm, affine_params, interpolate=True
-    )
+    assert (x, y, 186830) == drape2raster([x, y], dsm, affine_params, interpolate=True)
 
 
 def test_distance():
