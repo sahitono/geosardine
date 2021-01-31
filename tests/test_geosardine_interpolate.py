@@ -37,9 +37,9 @@ def test_idw():
                 np.array([[101.1, 102.2]]),
                 epsg=32748,
             ),
-            6,
+            8,
         )
-        == round(101.86735169471324, 6)
+        == round(101.86735169471324, 8)
     )
 
     with pytest.raises(ValueError):

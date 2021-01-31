@@ -23,7 +23,6 @@ def xy2rowcol(
     affine: Affine,
     interpolate: bool = False,
     round_function: Callable = int,
-    offset: str = "center"
 ) -> Union[Tuple[int, int], Tuple[float, float]]:
     """
     Convert geographic coordinate to image coordinate
@@ -45,27 +44,7 @@ def xy2rowcol(
         row, column
 
     """
-    if offset == "center":
-        r_offset = 0.5
-        c_offset = 0.5
-    elif offset == "ul":
-        r_offset = 0.0
-        c_offset = 0.0
-    elif offset == "bl":
-        r_offset = 1.0
-        c_offset = 0.0
-    elif offset == "ur":
-        r_offset = 0.0
-        c_offset = 1.0
-    elif offset == "br":
-        r_offset = 1.0
-        c_offset = 1.0
-    else:
-        raise ValueError(f"unknown offset parameter: {offset}")
-
     col, row = ~affine * xy
-    col += c_offset
-    row += r_offset
     if not interpolate:
         col, row = round_function(col), round_function(row)
     return row, col
