@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [0.11.0-alpha0] - 2021-02-24
+
+### Fixed
+- fixed xy2rowcol
+- fixed coordinate for idw to reduce it by half of resolution to represent upper left pixel
+
+### Added
+- indexing return raster with respective coordinate
+- split into tiled
+- interpolation return Raster instead InterpolationResult
+
+### Deprecated
+- py_resample will be removed in the future
+
+
+
+## [0.10.3] - 2021-01-29
+### Added
+- Added offset in xy2rowcol
+- add ipython in dev dependency
+
+
 ## [0.10.2] - 2020-12-18
 
 ### Fixed
@@ -124,7 +147,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support multiple layer in raster calculation
 
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.10.2...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.11.0-alpha0...HEAD
+[0.11.0-alpha0]: https://github.com/sahitono/geosardine/compare/v0.10.2...v0.11.0-alpha0
 [0.10.2]: https://github.com/sahitono/geosardine/compare/v0.9.5...v0.10.2
 [0.9.5]: https://github.com/sahitono/geosardine/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/sahitono/geosardine/compare/v0.9.3...v0.9.4

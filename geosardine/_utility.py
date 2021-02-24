@@ -13,6 +13,9 @@ from rasterio.crs import CRS
 def calc_affine(coordinate_array: np.ndarray) -> Affine:
     x_res = coordinate_array[0, 1, 0] - coordinate_array[0, 0, 0]
     y_res = coordinate_array[1, 0, 1] - coordinate_array[0, 0, 1]
+    x_min, y_max = coordinate_array[0, 0]
+    x_min -= x_res / 2
+    y_max -= y_res / 2
     affine = Affine.translation(*coordinate_array[0, 0]) * Affine.scale(x_res, y_res)
     return affine
 

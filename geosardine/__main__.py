@@ -85,7 +85,13 @@ def idw_cli(points: Path, output, resolution, column, distance_limit):
         column_name=column,
         distance_limit=distance_limit,
     )
-    interpolation.save(output)
+    if interpolation is not None:
+        out_filename = output
+        if output is None:
+            out_filename = points.parent.absolute().joinpath(f"{points.stem}_idw.tif")
+        interpolation.save(out_filename)
+    else:
+        raise ValueError("Result empty")
 
 
 if __name__ == "__main__":

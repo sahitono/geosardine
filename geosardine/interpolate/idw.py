@@ -9,7 +9,8 @@ import numba
 import numpy as np
 from rasterio.crs import CRS
 
-from .._utility import calc_distance, calc_extent
+from .._utility import calc_affine, calc_distance, calc_extent
+from ..raster import Raster
 from ._utility import InterpolationResult
 
 
@@ -48,7 +49,7 @@ def idw(
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
     distance_limit: float = 0.0,
-) -> Optional[InterpolationResult]:
+) -> Optional[Raster]:
     """
     create interpolated raster from point by using Inverse Distance Weighting (Shepard)
 
@@ -168,13 +169,17 @@ def _idw_array(
         distance_limit=distance_limit,
     ).reshape(rows, columns)
 
-    return InterpolationResult(
-        interpolated_value,
-        interpolated_coordinate,
-        crs,
-        (x_min, y_min, x_max, y_max),
-        source=source,
+    return Raster(
+        interpolated_value, transform=calc_affine(interpolated_coordinate), epsg=epsg
     )
+
+    # return InterpolationResult(
+    #     interpolated_value,
+    #     interpolated_coordinate,
+    #     crs,
+    #     (x_min, y_min, x_max, y_max),
+    #     source=source,
+    # )
 
 
 def idw_single(
@@ -258,7 +263,7 @@ def _idw_file(
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
     distance_limit: float = 0.0,
-) -> InterpolationResult:
+) -> Optional[Raster]:
     if os.path.exists(file_name):
         with fiona.open(file_name) as file:
             if "Point" in file.schema["geometry"]:
@@ -283,6 +288,8 @@ def _idw_file(
             source=file_name,
             distance_limit=distance_limit,
         )
+    else:
+        return None
 
 
 @idw.register
@@ -295,9 +302,9 @@ def _idw_file_path(
     extent: Optional[Tuple[float, float, float, float]] = None,
     power: Union[float, int] = 2,
     distance_limit: float = 0.0,
-) -> InterpolationResult:
+) -> Raster:
     return _idw_file(
-        file_name,
+        str(file_name),
         spatial_res,
         epsg,
         column_name,

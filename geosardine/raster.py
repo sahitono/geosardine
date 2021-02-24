@@ -1,3 +1,4 @@
+import warnings
 from operator import (
     add,
     floordiv,
@@ -24,36 +25,6 @@ from rasterio.plot import reshape_as_image
 from geosardine._geosardine import rowcol2xy, xy2rowcol
 from geosardine._raster_numba import __nb_raster_calc__, nb_raster_ops
 from geosardine._utility import save_raster
-
-
-def __nb_raster_calc(
-    raster_a: "Raster", raster_b: "Raster", operator: str
-) -> np.ndarray:
-    """Wrapper for Raster calculation per pixel using numba jit.
-
-    Parameters
-    ----------
-    raster_a : Raster
-        first raster
-    raster_b : Raster
-        second raster
-    operator : str
-        operator name
-
-    Returns
-    -------
-    np.ndarray
-        calculated raster
-    """
-    return __nb_raster_calc__(
-        raster_a.array,
-        raster_b.array,
-        raster_a.transform,
-        ~raster_b.transform,
-        raster_a.no_data,
-        raster_b.no_data,
-        __nb_raster_ops[operator],
-    )
 
 
 class Raster(np.ndarray):
@@ -125,6 +96,7 @@ class Raster(np.ndarray):
         epsg: int = 4326,
         no_data: Union[float, int] = -32767.0,
         transform: Optional[Affine] = None,
+        source: Optional[str] = None,
     ):
         if transform is None:
             if resolution is None and x_min is None and y_min is None:
@@ -170,13 +142,62 @@ class Raster(np.ndarray):
 
         self.crs = CRS.from_epsg(epsg)
         self.no_data = no_data
+        self.source = source
         self.__check_validity()
 
     def __new__(cls, array: np.ndarray, *args, **kwargs) -> "Raster":
         return array.view(cls)
 
-    def __getitem__(self, key: Union[int, Tuple[Any, ...], slice]) -> np.ndarray:
-        return self.array.__getitem__(key)
+    @staticmethod
+    def parse_slicer(key: Union[int, slice, None], length: int) -> int:
+        if key is None:
+            start = 0
+        elif isinstance(key, int):
+            start = key if key > 0 else length + key
+        elif isinstance(key, slice):
+            if key.start is None:
+                start = 0
+            elif key.start < 0:
+                start = length + slice.start
+            elif key.start > 0:
+                start = key.start
+            else:
+                raise ValueError
+        else:
+            raise ValueError
+        return start
+
+    def __getitem__(self, keys: Union[int, Tuple[Any, ...], slice]) -> np.ndarray:
+        if isinstance(keys, slice) or isinstance(keys, int):
+            row_col_min: List[int] = [
+                self.parse_slicer(keys, self.__array__().shape[0]),
+                0,
+            ]
+        elif len(keys) == 2:
+            row_col_min = [
+                self.parse_slicer(key, self.__array__().shape[i])
+                for i, key in enumerate(keys)
+            ]
+        elif len(keys) == 3:
+            row_col_min = [
+                self.parse_slicer(key, self.__array__().shape[i])
+                for i, key in enumerate(keys[:2])
+            ]
+
+        if row_col_min == [0, 0]:
+            return self.array.__get__item(keys)
+        else:
+            sliced_array = self.array.__getitem__(keys)
+            x_min, y_max = self.rowcol2xy(row_col_min[0], row_col_min[1], offset="ul")
+
+            return Raster(
+                sliced_array,
+                self.resolution,
+                x_min,
+                y_max,
+                epsg=self.epsg,
+                no_data=self.no_data,
+            )
 
     @classmethod
     def from_binary(
@@ -236,7 +257,15 @@ class Raster(np.ndarray):
 
             _bin_array = np.transpose(_bin_array, (h_index, w_index, c_index))
 
-        return cls(_bin_array, resolution, x_min, y_max, epsg=epsg, no_data=no_data)
+        return cls(
+            _bin_array,
+            resolution,
+            x_min,
+            y_max,
+            epsg=epsg,
+            no_data=no_data,
+            source=binary_file,
+        )
 
     @classmethod
     def from_rasterfile(cls, raster_file: str) -> "Raster":
@@ -259,6 +288,7 @@ class Raster(np.ndarray):
             transform=file.transform,
             epsg=file.crs.to_epsg(),
             no_data=file.nodatavals[0],
+            source=raster_file,
         )
 
     @property
@@ -348,6 +378,21 @@ class Raster(np.ndarray):
         """check crs is geographic or not"""
         return self.crs.is_geographic
 
+    @property
+    def coordinate_array(self) -> np.ndarray:
+        x_dist, y_dist = np.meshgrid(
+            np.arange(self.shape[1], dtype=np.float32),
+            np.arange(self.shape[0], dtype=np.float32),
+        )
+
+        x_dist *= self.resolution[0]
+        x_dist += self.x_min
+
+        y_dist *= self.resolution[1]
+        y_dist += self.y_max
+
+        return np.stack([x_dist, y_dist], axis=2)
+
     def __check_validity(self) -> None:
         """Check geometry validity
 
@@ -369,7 +414,9 @@ class Raster(np.ndarray):
         elif self.x_extent > 0 and self.y_extent < 0:
             raise ValueError("y min should be less than y max")
 
-    def xy_value(self, x: float, y: float) -> Union[float, int, np.ndarray]:
+    def xy_value(
+        self, x: float, y: float, offset="center"
+    ) -> Union[float, int, np.ndarray]:
         """Obtain pixel value by geodetic or projected coordinate
 
         Parameters
@@ -385,7 +432,7 @@ class Raster(np.ndarray):
             pixel value
         """
         try:
-            row, col = self.xy2rowcol(x, y)
+            row, col = self.xy2rowcol(x, y, offset=offset)
             if row < 0 or col < 0:
                 raise IndexError
             return self.array[row, col]
@@ -428,7 +475,7 @@ class Raster(np.ndarray):
         Tuple[int, int]
             row, column
         """
-        _row, _col = xy2rowcol((x, y), self.transform)
+        _row, _col = xy2rowcol((x, y), self.transform, offset=offset)
         return int(_row), int(_col)
 
     def __raster_calc_by_pixel__(
@@ -577,7 +624,7 @@ class Raster(np.ndarray):
         if self.layers == 1:
             _iter_shape = self.rows * self.cols
         _iter = self.array.reshape(_iter_shape)
-        for i in range(10):
+        for i in range(self.rows * self.cols):
             yield _iter[i]
 
     def save(self, file_name: str, compress: bool = False) -> None:
@@ -664,6 +711,10 @@ class Raster(np.ndarray):
             Resampled
         """
         if backend == "opencv":
+            if self.resolution[0] != self.resolution[1]:
+                warnings.warn(
+                    "non square pixel resolution, use rasterio instead", UserWarning
+                )
             return self.__cv_resample(resolution, method)
         elif backend == "python":
             return self.__py_resample(resolution)
@@ -768,6 +819,8 @@ class Raster(np.ndarray):
         Raster
             Resampled
         """
+        warnings.warn("this function will be removed in v1.0", DeprecationWarning)
+
         resized_y_resolution = self.y_extent / height
         resized_x_resolution = self.x_extent / width
 
@@ -797,3 +850,59 @@ class Raster(np.ndarray):
             self.y_max,
             epsg=self.epsg,
         )
+
+    def split2tiles(
+        self, tile_size: Union[int, Tuple[int, int], List[int]]
+    ) -> Generator[Tuple[int, int, "Raster"], None, None]:
+        """
+        Split raster into smaller tiles, excessive will be padded and have no data value
+
+        Parameters
+        -------
+        tile_size: int, list of int, tuple of int
+            dimension of tiles
+
+        Yields
+        -------
+        int, int, Raster
+            row, column, tiled raster
+        """
+
+        tile_width: int = 0
+        tile_height: int = 0
+        if isinstance(tile_size, int):
+            tile_height = tile_size
+            tile_width = tile_size
+        elif isinstance(tile_size, tuple) or isinstance(tile_size, list):
+            if isinstance(tile_size[0], int) or isinstance(tile_size[1], int):
+                tile_height, tile_width = tile_size
+
+        new_height = self.shape[0]
+        if self.shape[0] % tile_height != 0:
+            new_height += tile_height - (new_height % tile_height)
+
+        new_width = self.shape[1]
+        if self.shape[1] % tile_width != 0:
+            new_width += tile_width - (new_width % tile_width)
+
+        padded_array = np.zeros((new_height, new_height, self.layers), dtype=self.dtype)
+        padded_array[:] = self.no_data
+        padded_array[: self.shape[0], : self.shape[1]] = self.array
+
+        for r in range(0, new_height, tile_height):
+            for c in range(0, new_width, tile_width):
+                yield r, c, Raster(
+                    padded_array[r : r + tile_height, c : c + tile_width],
+                    self.resolution,
+                    *self.rowcol2xy(r, c, offset="ul"),
+                    epsg=self.epsg,
+                    no_data=self.no_data,
+                )
+
+
+class Layer(Raster):
+    pass
+
+
+class Pixel(Raster):
+    pass

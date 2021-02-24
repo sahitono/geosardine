@@ -23,7 +23,7 @@ def test_idw():
         interp = interpolate.idw("tests/idw/test_idw_file.geojson", (0.01, 0.01))
         # assert (np.load("tests/idw/test_idw_file_array.npy") == interp.array).all()
         assert type(interp.array) == np.ndarray and len(interp.array.shape) == 2
-        assert interp.save() is None
+        assert interp.save("tes.tif") is None
 
     assert interpolate.idw(1, np.array([0, 1]), (0.1, 0.1)) is None
     assert interpolate.idw_single([101, -7], xy, values) == 113.8992997794633
@@ -41,6 +41,3 @@ def test_idw():
         )
         == round(101.86735169471324, 8)
     )
-
-    with pytest.raises(ValueError):
-        interpolate.idw(xy, values, (0.01, 0.01), extent=calc_extent(xy)).save()
