@@ -25,9 +25,10 @@
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L0-L768" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L0-L907" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">from operator import (
+<pre><code class="python">import warnings
+from operator import (
     add,
     floordiv,
     iadd,
@@ -124,6 +125,7 @@ class Raster(np.ndarray):
         epsg: int = 4326,
         no_data: Union[float, int] = -32767.0,
         transform: Optional[Affine] = None,
+        source: Optional[str] = None,
     ):
         if transform is None:
             if resolution is None and x_min is None and y_min is None:
@@ -169,13 +171,62 @@ class Raster(np.ndarray):
 
         self.crs = CRS.from_epsg(epsg)
         self.no_data = no_data
+        self.source = source
         self.__check_validity()
 
     def __new__(cls, array: np.ndarray, *args, **kwargs) -&gt; &#34;Raster&#34;:
         return array.view(cls)
 
-    def __getitem__(self, key: Union[int, Tuple[Any, ...], slice]) -&gt; np.ndarray:
-        return self.array.__getitem__(key)
+    @staticmethod
+    def parse_slicer(key: Union[int, slice, None], length: int) -&gt; int:
+        if key is None:
+            start = 0
+        elif isinstance(key, int):
+            start = key if key &gt; 0 else length + key
+        elif isinstance(key, slice):
+            if key.start is None:
+                start = 0
+            elif key.start &lt; 0:
+                start = length + slice.start
+            elif key.start &gt; 0:
+                start = key.start
+            else:
+                raise ValueError
+        else:
+            raise ValueError
+        return start
+
+    def __getitem__(self, keys: Union[int, Tuple[Any, ...], slice]) -&gt; np.ndarray:
+        if isinstance(keys, slice) or isinstance(keys, int):
+            row_col_min: List[int] = [
+                self.parse_slicer(keys, self.__array__().shape[0]),
+                0,
+            ]
+        elif len(keys) == 2:
+            row_col_min = [
+                self.parse_slicer(key, self.__array__().shape[i])
+                for i, key in enumerate(keys)
+            ]
+        elif len(keys) == 3:
+            row_col_min = [
+                self.parse_slicer(key, self.__array__().shape[i])
+                for i, key in enumerate(keys[:2])
+            ]
+
+        if row_col_min == [0, 0]:
+            return self.array.__get__item(keys)
+        else:
+            sliced_array = self.array.__getitem__(keys)
+            x_min, y_max = self.rowcol2xy(row_col_min[0], row_col_min[1], offset=&#34;ul&#34;)
+
+            return Raster(
+                sliced_array,
+                self.resolution,
+                x_min,
+                y_max,
+                epsg=self.epsg,
+                no_data=self.no_data,
+            )
 
     @classmethod
     def from_binary(
@@ -235,7 +286,15 @@ class Raster(np.ndarray):
 
             _bin_array = np.transpose(_bin_array, (h_index, w_index, c_index))
 
-        return cls(_bin_array, resolution, x_min, y_max, epsg=epsg, no_data=no_data)
+        return cls(
+            _bin_array,
+            resolution,
+            x_min,
+            y_max,
+            epsg=epsg,
+            no_data=no_data,
+            source=binary_file,
+        )
 
     @classmethod
     def from_rasterfile(cls, raster_file: str) -&gt; &#34;Raster&#34;:
@@ -258,6 +317,7 @@ class Raster(np.ndarray):
             transform=file.transform,
             epsg=file.crs.to_epsg(),
             no_data=file.nodatavals[0],
+            source=raster_file,
         )
 
     @property
@@ -347,6 +407,21 @@ class Raster(np.ndarray):
         &#34;&#34;&#34;check crs is geographic or not&#34;&#34;&#34;
         return self.crs.is_geographic
 
+    @property
+    def coordinate_array(self) -&gt; np.ndarray:
+        x_dist, y_dist = np.meshgrid(
+            np.arange(self.shape[1], dtype=np.float32),
+            np.arange(self.shape[0], dtype=np.float32),
+        )
+
+        x_dist *= self.resolution[0]
+        x_dist += self.x_min
+
+        y_dist *= self.resolution[1]
+        y_dist += self.y_max
+
+        return np.stack([x_dist, y_dist], axis=2)
+
     def __check_validity(self) -&gt; None:
         &#34;&#34;&#34;Check geometry validity
 
@@ -368,7 +443,9 @@ class Raster(np.ndarray):
         elif self.x_extent &gt; 0 and self.y_extent &lt; 0:
             raise ValueError(&#34;y min should be less than y max&#34;)
 
-    def xy_value(self, x: float, y: float) -&gt; Union[float, int, np.ndarray]:
+    def xy_value(
+        self, x: float, y: float, offset=&#34;center&#34;
+    ) -&gt; Union[float, int, np.ndarray]:
         &#34;&#34;&#34;Obtain pixel value by geodetic or projected coordinate
 
         Parameters
@@ -384,7 +461,7 @@ class Raster(np.ndarray):
             pixel value
         &#34;&#34;&#34;
         try:
-            row, col = self.xy2rowcol(x, y)
+            row, col = self.xy2rowcol(x, y, offset=offset)
             if row &lt; 0 or col &lt; 0:
                 raise IndexError
             return self.array[row, col]
@@ -427,7 +504,7 @@ class Raster(np.ndarray):
         Tuple[int, int]
             row, column
         &#34;&#34;&#34;
-        _row, _col = xy2rowcol((x, y), self.transform)
+        _row, _col = xy2rowcol((x, y), self.transform, offset=offset)
         return int(_row), int(_col)
 
     def __raster_calc_by_pixel__(
@@ -576,7 +653,7 @@ class Raster(np.ndarray):
         if self.layers == 1:
             _iter_shape = self.rows * self.cols
         _iter = self.array.reshape(_iter_shape)
-        for i in range(10):
+        for i in range(self.rows * self.cols):
             yield _iter[i]
 
     def save(self, file_name: str, compress: bool = False) -&gt; None:
@@ -663,6 +740,10 @@ class Raster(np.ndarray):
             Resampled
         &#34;&#34;&#34;
         if backend == &#34;opencv&#34;:
+            if self.resolution[0] != self.resolution[1]:
+                warnings.warn(
+                    &#34;non square pixel resolution, use rasterio instead&#34;, UserWarning
+                )
             return self.__cv_resample(resolution, method)
         elif backend == &#34;python&#34;:
             return self.__py_resample(resolution)
@@ -767,6 +848,8 @@ class Raster(np.ndarray):
         Raster
             Resampled
         &#34;&#34;&#34;
+        warnings.warn(&#34;this function will be removed in v1.0&#34;, DeprecationWarning)
+
         resized_y_resolution = self.y_extent / height
         resized_x_resolution = self.x_extent / width
 
@@ -795,7 +878,63 @@ class Raster(np.ndarray):
             self.x_min,
             self.y_max,
             epsg=self.epsg,
-        )</code></pre>
+        )
+
+    def split2tiles(
+        self, tile_size: Union[int, Tuple[int, int], List[int]]
+    ) -&gt; Generator[Tuple[int, int, &#34;Raster&#34;], None, None]:
+        &#34;&#34;&#34;
+        Split raster into smaller tiles, excessive will be padded and have no data value
+
+        Parameters
+        -------
+        tile_size: int, list of int, tuple of int
+            dimension of tiles
+
+        Yields
+        -------
+        int, int, Raster
+            row, column, tiled raster
+        &#34;&#34;&#34;
+
+        tile_width: int = 0
+        tile_height: int = 0
+        if isinstance(tile_size, int):
+            tile_height = tile_size
+            tile_width = tile_size
+        elif isinstance(tile_size, tuple) or isinstance(tile_size, list):
+            if isinstance(tile_size[0], int) or isinstance(tile_size[1], int):
+                tile_height, tile_width = tile_size
+
+        new_height = self.shape[0]
+        if self.shape[0] % tile_height != 0:
+            new_height += tile_height - (new_height % tile_height)
+
+        new_width = self.shape[1]
+        if self.shape[1] % tile_width != 0:
+            new_width += tile_width - (new_width % tile_width)
+
+        padded_array = np.zeros((new_height, new_height, self.layers), dtype=self.dtype)
+        padded_array[:] = self.no_data
+        padded_array[: self.shape[0], : self.shape[1]] = self.array
+
+        for r in range(0, new_height, tile_height):
+            for c in range(0, new_width, tile_width):
+                yield r, c, Raster(
+                    padded_array[r : r + tile_height, c : c + tile_width],
+                    self.resolution,
+                    *self.rowcol2xy(r, c, offset=&#34;ul&#34;),
+                    epsg=self.epsg,
+                    no_data=self.no_data,
+                )
+
+
+class Layer(Raster):
+    pass
+
+
+class Pixel(Raster):
+    pass</code></pre>
 </details>
 </section>
 <section>
@@ -807,9 +946,9 @@ class Raster(np.ndarray):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="geosardine.raster.Raster"><code class="flex name class">
-<span>class <span class="ident">Raster</span></span>
-<span>(</span><span>array: numpy.ndarray, resolution: Union[NoneType, Tuple[float, float], List[float], Tuple[float, ...], float] = None, x_min: Union[float, NoneType] = None, y_max: Union[float, NoneType] = None, x_max: Union[float, NoneType] = None, y_min: Union[float, NoneType] = None, epsg: int = 4326, no_data: Union[float, int] = -32767.0, transform: Union[affine.Affine, NoneType] = None)</span>
+<dt id="geosardine.raster.Layer"><code class="flex name class">
+<span>class <span class="ident">Layer</span></span>
+<span>(</span><span>array: numpy.ndarray, resolution: Union[NoneType, Tuple[float, float], List[float], Tuple[float, ...], float] = None, x_min: Union[float, NoneType] = None, y_max: Union[float, NoneType] = None, x_max: Union[float, NoneType] = None, y_min: Union[float, NoneType] = None, epsg: int = 4326, no_data: Union[float, int] = -32767.0, transform: Union[affine.Affine, NoneType] = None, source: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Construct Raster from numpy array with spatial information.
@@ -858,7 +997,195 @@ Raster can be resized
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L29-L769" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L903-L904" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class Layer(Raster):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></li>
+<li>numpy.ndarray</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geosardine.raster.Raster.array" href="#geosardine.raster.Raster.array">array</a></code></li>
+<li><code><a title="geosardine.raster.Raster.bottom" href="#geosardine.raster.Raster.bottom">bottom</a></code></li>
+<li><code><a title="geosardine.raster.Raster.cols" href="#geosardine.raster.Raster.cols">cols</a></code></li>
+<li><code><a title="geosardine.raster.Raster.from_binary" href="#geosardine.raster.Raster.from_binary">from_binary</a></code></li>
+<li><code><a title="geosardine.raster.Raster.from_rasterfile" href="#geosardine.raster.Raster.from_rasterfile">from_rasterfile</a></code></li>
+<li><code><a title="geosardine.raster.Raster.is_geographic" href="#geosardine.raster.Raster.is_geographic">is_geographic</a></code></li>
+<li><code><a title="geosardine.raster.Raster.is_projected" href="#geosardine.raster.Raster.is_projected">is_projected</a></code></li>
+<li><code><a title="geosardine.raster.Raster.layers" href="#geosardine.raster.Raster.layers">layers</a></code></li>
+<li><code><a title="geosardine.raster.Raster.left" href="#geosardine.raster.Raster.left">left</a></code></li>
+<li><code><a title="geosardine.raster.Raster.resample" href="#geosardine.raster.Raster.resample">resample</a></code></li>
+<li><code><a title="geosardine.raster.Raster.resize" href="#geosardine.raster.Raster.resize">resize</a></code></li>
+<li><code><a title="geosardine.raster.Raster.right" href="#geosardine.raster.Raster.right">right</a></code></li>
+<li><code><a title="geosardine.raster.Raster.rowcol2xy" href="#geosardine.raster.Raster.rowcol2xy">rowcol2xy</a></code></li>
+<li><code><a title="geosardine.raster.Raster.rows" href="#geosardine.raster.Raster.rows">rows</a></code></li>
+<li><code><a title="geosardine.raster.Raster.save" href="#geosardine.raster.Raster.save">save</a></code></li>
+<li><code><a title="geosardine.raster.Raster.split2tiles" href="#geosardine.raster.Raster.split2tiles">split2tiles</a></code></li>
+<li><code><a title="geosardine.raster.Raster.top" href="#geosardine.raster.Raster.top">top</a></code></li>
+<li><code><a title="geosardine.raster.Raster.x_extent" href="#geosardine.raster.Raster.x_extent">x_extent</a></code></li>
+<li><code><a title="geosardine.raster.Raster.x_max" href="#geosardine.raster.Raster.x_max">x_max</a></code></li>
+<li><code><a title="geosardine.raster.Raster.x_min" href="#geosardine.raster.Raster.x_min">x_min</a></code></li>
+<li><code><a title="geosardine.raster.Raster.xy2rowcol" href="#geosardine.raster.Raster.xy2rowcol">xy2rowcol</a></code></li>
+<li><code><a title="geosardine.raster.Raster.xy_value" href="#geosardine.raster.Raster.xy_value">xy_value</a></code></li>
+<li><code><a title="geosardine.raster.Raster.y_extent" href="#geosardine.raster.Raster.y_extent">y_extent</a></code></li>
+<li><code><a title="geosardine.raster.Raster.y_max" href="#geosardine.raster.Raster.y_max">y_max</a></code></li>
+<li><code><a title="geosardine.raster.Raster.y_min" href="#geosardine.raster.Raster.y_min">y_min</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geosardine.raster.Pixel"><code class="flex name class">
+<span>class <span class="ident">Pixel</span></span>
+<span>(</span><span>array: numpy.ndarray, resolution: Union[NoneType, Tuple[float, float], List[float], Tuple[float, ...], float] = None, x_min: Union[float, NoneType] = None, y_max: Union[float, NoneType] = None, x_max: Union[float, NoneType] = None, y_min: Union[float, NoneType] = None, epsg: int = 4326, no_data: Union[float, int] = -32767.0, transform: Union[affine.Affine, NoneType] = None, source: Union[str, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Construct Raster from numpy array with spatial information.
+Support calculation between different raster</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>array</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>array of raster</dd>
+<dt><strong><code>resolution</code></strong> :&ensp;<code>tuple, list</code>, default <code>None</code></dt>
+<dd>spatial resolution</dd>
+<dt><strong><code>x_min</code></strong> :&ensp;<code>float, defaults to None</code></dt>
+<dd>left boundary of x-axis coordinate</dd>
+<dt><strong><code>y_max</code></strong> :&ensp;<code>float, defaults to None</code></dt>
+<dd>top boundary of y-axis coordinate</dd>
+<dt><strong><code>x_max</code></strong> :&ensp;<code>float, defaults to None</code></dt>
+<dd>right boundary of x-axis coordinate</dd>
+<dt><strong><code>y_min</code></strong> :&ensp;<code>float, defaults to None</code></dt>
+<dd>bottom boundary of y-axis coordinate</dd>
+<dt><strong><code>epsg</code></strong> :&ensp;<code>int, defaults to 4326</code></dt>
+<dd>EPSG code of reference system</dd>
+<dt><strong><code>no_data</code></strong> :&ensp;<code>int</code> or <code>float</code>, default <code>None</code></dt>
+<dd>no data value</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from geosardine import Raster
+&gt;&gt;&gt; raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7)
+&gt;&gt;&gt; print(raster)
+[[[1. 1.]
+  [1. 1.]
+  [1. 1.]]
+ [[1. 1.]
+  [1. 1.]
+  [1. 1.]]
+ [[1. 1.]
+  [1. 1.]
+  [1. 1.]]]
+Raster can be resampled like this. (0.2,0.2) is the result's spatial resolution
+&gt;&gt;&gt; resampled = raster.resample((0.2,0.2))
+&gt;&gt;&gt; print(resampled.shape, resampled.resolution)
+(6, 6, 2) (0.2, 0.2)
+Raster can be resized
+&gt;&gt;&gt; resized = raster.resize(height=16, width=16)
+&gt;&gt;&gt; print(resized.shape, resized.resolution)
+(16, 16, 2) (0.07500000000000018, 0.07500000000000001)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L907-L908" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class Pixel(Raster):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></li>
+<li>numpy.ndarray</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geosardine.raster.Raster.array" href="#geosardine.raster.Raster.array">array</a></code></li>
+<li><code><a title="geosardine.raster.Raster.bottom" href="#geosardine.raster.Raster.bottom">bottom</a></code></li>
+<li><code><a title="geosardine.raster.Raster.cols" href="#geosardine.raster.Raster.cols">cols</a></code></li>
+<li><code><a title="geosardine.raster.Raster.from_binary" href="#geosardine.raster.Raster.from_binary">from_binary</a></code></li>
+<li><code><a title="geosardine.raster.Raster.from_rasterfile" href="#geosardine.raster.Raster.from_rasterfile">from_rasterfile</a></code></li>
+<li><code><a title="geosardine.raster.Raster.is_geographic" href="#geosardine.raster.Raster.is_geographic">is_geographic</a></code></li>
+<li><code><a title="geosardine.raster.Raster.is_projected" href="#geosardine.raster.Raster.is_projected">is_projected</a></code></li>
+<li><code><a title="geosardine.raster.Raster.layers" href="#geosardine.raster.Raster.layers">layers</a></code></li>
+<li><code><a title="geosardine.raster.Raster.left" href="#geosardine.raster.Raster.left">left</a></code></li>
+<li><code><a title="geosardine.raster.Raster.resample" href="#geosardine.raster.Raster.resample">resample</a></code></li>
+<li><code><a title="geosardine.raster.Raster.resize" href="#geosardine.raster.Raster.resize">resize</a></code></li>
+<li><code><a title="geosardine.raster.Raster.right" href="#geosardine.raster.Raster.right">right</a></code></li>
+<li><code><a title="geosardine.raster.Raster.rowcol2xy" href="#geosardine.raster.Raster.rowcol2xy">rowcol2xy</a></code></li>
+<li><code><a title="geosardine.raster.Raster.rows" href="#geosardine.raster.Raster.rows">rows</a></code></li>
+<li><code><a title="geosardine.raster.Raster.save" href="#geosardine.raster.Raster.save">save</a></code></li>
+<li><code><a title="geosardine.raster.Raster.split2tiles" href="#geosardine.raster.Raster.split2tiles">split2tiles</a></code></li>
+<li><code><a title="geosardine.raster.Raster.top" href="#geosardine.raster.Raster.top">top</a></code></li>
+<li><code><a title="geosardine.raster.Raster.x_extent" href="#geosardine.raster.Raster.x_extent">x_extent</a></code></li>
+<li><code><a title="geosardine.raster.Raster.x_max" href="#geosardine.raster.Raster.x_max">x_max</a></code></li>
+<li><code><a title="geosardine.raster.Raster.x_min" href="#geosardine.raster.Raster.x_min">x_min</a></code></li>
+<li><code><a title="geosardine.raster.Raster.xy2rowcol" href="#geosardine.raster.Raster.xy2rowcol">xy2rowcol</a></code></li>
+<li><code><a title="geosardine.raster.Raster.xy_value" href="#geosardine.raster.Raster.xy_value">xy_value</a></code></li>
+<li><code><a title="geosardine.raster.Raster.y_extent" href="#geosardine.raster.Raster.y_extent">y_extent</a></code></li>
+<li><code><a title="geosardine.raster.Raster.y_max" href="#geosardine.raster.Raster.y_max">y_max</a></code></li>
+<li><code><a title="geosardine.raster.Raster.y_min" href="#geosardine.raster.Raster.y_min">y_min</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geosardine.raster.Raster"><code class="flex name class">
+<span>class <span class="ident">Raster</span></span>
+<span>(</span><span>array: numpy.ndarray, resolution: Union[NoneType, Tuple[float, float], List[float], Tuple[float, ...], float] = None, x_min: Union[float, NoneType] = None, y_max: Union[float, NoneType] = None, x_max: Union[float, NoneType] = None, y_min: Union[float, NoneType] = None, epsg: int = 4326, no_data: Union[float, int] = -32767.0, transform: Union[affine.Affine, NoneType] = None, source: Union[str, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Construct Raster from numpy array with spatial information.
+Support calculation between different raster</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>array</code></strong> :&ensp;<code>numpy array</code></dt>
+<dd>array of raster</dd>
+<dt><strong><code>resolution</code></strong> :&ensp;<code>tuple, list</code>, default <code>None</code></dt>
+<dd>spatial resolution</dd>
+<dt><strong><code>x_min</code></strong> :&ensp;<code>float, defaults to None</code></dt>
+<dd>left boundary of x-axis coordinate</dd>
+<dt><strong><code>y_max</code></strong> :&ensp;<code>float, defaults to None</code></dt>
+<dd>top boundary of y-axis coordinate</dd>
+<dt><strong><code>x_max</code></strong> :&ensp;<code>float, defaults to None</code></dt>
+<dd>right boundary of x-axis coordinate</dd>
+<dt><strong><code>y_min</code></strong> :&ensp;<code>float, defaults to None</code></dt>
+<dd>bottom boundary of y-axis coordinate</dd>
+<dt><strong><code>epsg</code></strong> :&ensp;<code>int, defaults to 4326</code></dt>
+<dd>EPSG code of reference system</dd>
+<dt><strong><code>no_data</code></strong> :&ensp;<code>int</code> or <code>float</code>, default <code>None</code></dt>
+<dd>no data value</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from geosardine import Raster
+&gt;&gt;&gt; raster = Raster(np.ones(18, dtype=np.float32).reshape(3, 3, 2), resolution=0.4, x_min=120, y_max=0.7)
+&gt;&gt;&gt; print(raster)
+[[[1. 1.]
+  [1. 1.]
+  [1. 1.]]
+ [[1. 1.]
+  [1. 1.]
+  [1. 1.]]
+ [[1. 1.]
+  [1. 1.]
+  [1. 1.]]]
+Raster can be resampled like this. (0.2,0.2) is the result's spatial resolution
+&gt;&gt;&gt; resampled = raster.resample((0.2,0.2))
+&gt;&gt;&gt; print(resampled.shape, resampled.resolution)
+(6, 6, 2) (0.2, 0.2)
+Raster can be resized
+&gt;&gt;&gt; resized = raster.resize(height=16, width=16)
+&gt;&gt;&gt; print(resized.shape, resized.resolution)
+(16, 16, 2) (0.07500000000000018, 0.07500000000000001)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L30-L900" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Raster(np.ndarray):
     &#34;&#34;&#34;
@@ -929,6 +1256,7 @@ Raster can be resized
         epsg: int = 4326,
         no_data: Union[float, int] = -32767.0,
         transform: Optional[Affine] = None,
+        source: Optional[str] = None,
     ):
         if transform is None:
             if resolution is None and x_min is None and y_min is None:
@@ -974,13 +1302,62 @@ Raster can be resized
 
         self.crs = CRS.from_epsg(epsg)
         self.no_data = no_data
+        self.source = source
         self.__check_validity()
 
     def __new__(cls, array: np.ndarray, *args, **kwargs) -&gt; &#34;Raster&#34;:
         return array.view(cls)
 
-    def __getitem__(self, key: Union[int, Tuple[Any, ...], slice]) -&gt; np.ndarray:
-        return self.array.__getitem__(key)
+    @staticmethod
+    def parse_slicer(key: Union[int, slice, None], length: int) -&gt; int:
+        if key is None:
+            start = 0
+        elif isinstance(key, int):
+            start = key if key &gt; 0 else length + key
+        elif isinstance(key, slice):
+            if key.start is None:
+                start = 0
+            elif key.start &lt; 0:
+                start = length + slice.start
+            elif key.start &gt; 0:
+                start = key.start
+            else:
+                raise ValueError
+        else:
+            raise ValueError
+        return start
+
+    def __getitem__(self, keys: Union[int, Tuple[Any, ...], slice]) -&gt; np.ndarray:
+        if isinstance(keys, slice) or isinstance(keys, int):
+            row_col_min: List[int] = [
+                self.parse_slicer(keys, self.__array__().shape[0]),
+                0,
+            ]
+        elif len(keys) == 2:
+            row_col_min = [
+                self.parse_slicer(key, self.__array__().shape[i])
+                for i, key in enumerate(keys)
+            ]
+        elif len(keys) == 3:
+            row_col_min = [
+                self.parse_slicer(key, self.__array__().shape[i])
+                for i, key in enumerate(keys[:2])
+            ]
+
+        if row_col_min == [0, 0]:
+            return self.array.__get__item(keys)
+        else:
+            sliced_array = self.array.__getitem__(keys)
+            x_min, y_max = self.rowcol2xy(row_col_min[0], row_col_min[1], offset=&#34;ul&#34;)
+
+            return Raster(
+                sliced_array,
+                self.resolution,
+                x_min,
+                y_max,
+                epsg=self.epsg,
+                no_data=self.no_data,
+            )
 
     @classmethod
     def from_binary(
@@ -1040,7 +1417,15 @@ Raster can be resized
 
             _bin_array = np.transpose(_bin_array, (h_index, w_index, c_index))
 
-        return cls(_bin_array, resolution, x_min, y_max, epsg=epsg, no_data=no_data)
+        return cls(
+            _bin_array,
+            resolution,
+            x_min,
+            y_max,
+            epsg=epsg,
+            no_data=no_data,
+            source=binary_file,
+        )
 
     @classmethod
     def from_rasterfile(cls, raster_file: str) -&gt; &#34;Raster&#34;:
@@ -1063,6 +1448,7 @@ Raster can be resized
             transform=file.transform,
             epsg=file.crs.to_epsg(),
             no_data=file.nodatavals[0],
+            source=raster_file,
         )
 
     @property
@@ -1152,6 +1538,21 @@ Raster can be resized
         &#34;&#34;&#34;check crs is geographic or not&#34;&#34;&#34;
         return self.crs.is_geographic
 
+    @property
+    def coordinate_array(self) -&gt; np.ndarray:
+        x_dist, y_dist = np.meshgrid(
+            np.arange(self.shape[1], dtype=np.float32),
+            np.arange(self.shape[0], dtype=np.float32),
+        )
+
+        x_dist *= self.resolution[0]
+        x_dist += self.x_min
+
+        y_dist *= self.resolution[1]
+        y_dist += self.y_max
+
+        return np.stack([x_dist, y_dist], axis=2)
+
     def __check_validity(self) -&gt; None:
         &#34;&#34;&#34;Check geometry validity
 
@@ -1173,7 +1574,9 @@ Raster can be resized
         elif self.x_extent &gt; 0 and self.y_extent &lt; 0:
             raise ValueError(&#34;y min should be less than y max&#34;)
 
-    def xy_value(self, x: float, y: float) -&gt; Union[float, int, np.ndarray]:
+    def xy_value(
+        self, x: float, y: float, offset=&#34;center&#34;
+    ) -&gt; Union[float, int, np.ndarray]:
         &#34;&#34;&#34;Obtain pixel value by geodetic or projected coordinate
 
         Parameters
@@ -1189,7 +1592,7 @@ Raster can be resized
             pixel value
         &#34;&#34;&#34;
         try:
-            row, col = self.xy2rowcol(x, y)
+            row, col = self.xy2rowcol(x, y, offset=offset)
             if row &lt; 0 or col &lt; 0:
                 raise IndexError
             return self.array[row, col]
@@ -1232,7 +1635,7 @@ Raster can be resized
         Tuple[int, int]
             row, column
         &#34;&#34;&#34;
-        _row, _col = xy2rowcol((x, y), self.transform)
+        _row, _col = xy2rowcol((x, y), self.transform, offset=offset)
         return int(_row), int(_col)
 
     def __raster_calc_by_pixel__(
@@ -1381,7 +1784,7 @@ Raster can be resized
         if self.layers == 1:
             _iter_shape = self.rows * self.cols
         _iter = self.array.reshape(_iter_shape)
-        for i in range(10):
+        for i in range(self.rows * self.cols):
             yield _iter[i]
 
     def save(self, file_name: str, compress: bool = False) -&gt; None:
@@ -1468,6 +1871,10 @@ Raster can be resized
             Resampled
         &#34;&#34;&#34;
         if backend == &#34;opencv&#34;:
+            if self.resolution[0] != self.resolution[1]:
+                warnings.warn(
+                    &#34;non square pixel resolution, use rasterio instead&#34;, UserWarning
+                )
             return self.__cv_resample(resolution, method)
         elif backend == &#34;python&#34;:
             return self.__py_resample(resolution)
@@ -1572,6 +1979,8 @@ Raster can be resized
         Raster
             Resampled
         &#34;&#34;&#34;
+        warnings.warn(&#34;this function will be removed in v1.0&#34;, DeprecationWarning)
+
         resized_y_resolution = self.y_extent / height
         resized_x_resolution = self.x_extent / width
 
@@ -1600,11 +2009,64 @@ Raster can be resized
             self.x_min,
             self.y_max,
             epsg=self.epsg,
-        )</code></pre>
+        )
+
+    def split2tiles(
+        self, tile_size: Union[int, Tuple[int, int], List[int]]
+    ) -&gt; Generator[Tuple[int, int, &#34;Raster&#34;], None, None]:
+        &#34;&#34;&#34;
+        Split raster into smaller tiles, excessive will be padded and have no data value
+
+        Parameters
+        -------
+        tile_size: int, list of int, tuple of int
+            dimension of tiles
+
+        Yields
+        -------
+        int, int, Raster
+            row, column, tiled raster
+        &#34;&#34;&#34;
+
+        tile_width: int = 0
+        tile_height: int = 0
+        if isinstance(tile_size, int):
+            tile_height = tile_size
+            tile_width = tile_size
+        elif isinstance(tile_size, tuple) or isinstance(tile_size, list):
+            if isinstance(tile_size[0], int) or isinstance(tile_size[1], int):
+                tile_height, tile_width = tile_size
+
+        new_height = self.shape[0]
+        if self.shape[0] % tile_height != 0:
+            new_height += tile_height - (new_height % tile_height)
+
+        new_width = self.shape[1]
+        if self.shape[1] % tile_width != 0:
+            new_width += tile_width - (new_width % tile_width)
+
+        padded_array = np.zeros((new_height, new_height, self.layers), dtype=self.dtype)
+        padded_array[:] = self.no_data
+        padded_array[: self.shape[0], : self.shape[1]] = self.array
+
+        for r in range(0, new_height, tile_height):
+            for c in range(0, new_width, tile_width):
+                yield r, c, Raster(
+                    padded_array[r : r + tile_height, c : c + tile_width],
+                    self.resolution,
+                    *self.rowcol2xy(r, c, offset=&#34;ul&#34;),
+                    epsg=self.epsg,
+                    no_data=self.no_data,
+                )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>numpy.ndarray</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geosardine.raster.Layer" href="#geosardine.raster.Layer">Layer</a></li>
+<li><a title="geosardine.raster.Pixel" href="#geosardine.raster.Pixel">Pixel</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
@@ -1643,7 +2105,7 @@ Raster can be resized
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L151-L209" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L202-L268" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def from_binary(
@@ -1703,7 +2165,15 @@ def from_binary(
 
         _bin_array = np.transpose(_bin_array, (h_index, w_index, c_index))
 
-    return cls(_bin_array, resolution, x_min, y_max, epsg=epsg, no_data=no_data)</code></pre>
+    return cls(
+        _bin_array,
+        resolution,
+        x_min,
+        y_max,
+        epsg=epsg,
+        no_data=no_data,
+        source=binary_file,
+    )</code></pre>
 </details>
 </dd>
 <dt id="geosardine.raster.Raster.from_rasterfile"><code class="name flex">
@@ -1724,7 +2194,7 @@ def from_binary(
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L211-L232" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L270-L292" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def from_rasterfile(cls, raster_file: str) -&gt; &#34;Raster&#34;:
@@ -1747,7 +2217,38 @@ def from_rasterfile(cls, raster_file: str) -&gt; &#34;Raster&#34;:
         transform=file.transform,
         epsg=file.crs.to_epsg(),
         no_data=file.nodatavals[0],
+        source=raster_file,
     )</code></pre>
+</details>
+</dd>
+<dt id="geosardine.raster.Raster.parse_slicer"><code class="name flex">
+<span>def <span class="ident">parse_slicer</span></span>(<span>key: Union[int, slice, NoneType], length: int) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L151-L168" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@staticmethod
+def parse_slicer(key: Union[int, slice, None], length: int) -&gt; int:
+    if key is None:
+        start = 0
+    elif isinstance(key, int):
+        start = key if key &gt; 0 else length + key
+    elif isinstance(key, slice):
+        if key.start is None:
+            start = 0
+        elif key.start &lt; 0:
+            start = length + slice.start
+        elif key.start &gt; 0:
+            start = key.start
+        else:
+            raise ValueError
+    else:
+        raise ValueError
+    return start</code></pre>
 </details>
 </dd>
 </dl>
@@ -1759,7 +2260,7 @@ def from_rasterfile(cls, raster_file: str) -&gt; &#34;Raster&#34;:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L234-L237" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L294-L297" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def array(self) -&gt; np.ndarray:
@@ -1773,7 +2274,7 @@ def array(self) -&gt; np.ndarray:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L278-L281" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L338-L341" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def bottom(self) -&gt; float:
@@ -1787,12 +2288,36 @@ def bottom(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L288-L291" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L348-L351" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def cols(self) -&gt; int:
     &#34;&#34;&#34;number of column, width&#34;&#34;&#34;
     return int(self.array.shape[1])</code></pre>
+</details>
+</dd>
+<dt id="geosardine.raster.Raster.coordinate_array"><code class="name">var <span class="ident">coordinate_array</span> : numpy.ndarray</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L381-L394" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@property
+def coordinate_array(self) -&gt; np.ndarray:
+    x_dist, y_dist = np.meshgrid(
+        np.arange(self.shape[1], dtype=np.float32),
+        np.arange(self.shape[0], dtype=np.float32),
+    )
+
+    x_dist *= self.resolution[0]
+    x_dist += self.x_min
+
+    y_dist *= self.resolution[1]
+    y_dist += self.y_max
+
+    return np.stack([x_dist, y_dist], axis=2)</code></pre>
 </details>
 </dd>
 <dt id="geosardine.raster.Raster.is_geographic"><code class="name">var <span class="ident">is_geographic</span> : bool</code></dt>
@@ -1801,7 +2326,7 @@ def cols(self) -&gt; int:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L316-L319" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L376-L379" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def is_geographic(self) -&gt; bool:
@@ -1815,7 +2340,7 @@ def is_geographic(self) -&gt; bool:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L311-L314" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L371-L374" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def is_projected(self) -&gt; bool:
@@ -1829,7 +2354,7 @@ def is_projected(self) -&gt; bool:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L293-L299" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L353-L359" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def layers(self) -&gt; int:
@@ -1846,7 +2371,7 @@ def layers(self) -&gt; int:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L268-L271" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L328-L331" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def left(self) -&gt; float:
@@ -1860,7 +2385,7 @@ def left(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L273-L276" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L333-L336" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def right(self) -&gt; float:
@@ -1874,7 +2399,7 @@ def right(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L283-L286" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L343-L346" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def rows(self) -&gt; int:
@@ -1888,7 +2413,7 @@ def rows(self) -&gt; int:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L263-L266" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L323-L326" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def top(self) -&gt; float:
@@ -1902,7 +2427,7 @@ def top(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L301-L304" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L361-L364" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def x_extent(self) -&gt; float:
@@ -1916,7 +2441,7 @@ def x_extent(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L253-L256" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L313-L316" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def x_max(self) -&gt; float:
@@ -1930,7 +2455,7 @@ def x_max(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L243-L246" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L303-L306" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def x_min(self) -&gt; float:
@@ -1944,7 +2469,7 @@ def x_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L306-L309" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L366-L369" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def y_extent(self) -&gt; float:
@@ -1958,7 +2483,7 @@ def y_extent(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L248-L251" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L308-L311" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def y_max(self) -&gt; float:
@@ -1972,7 +2497,7 @@ def y_max(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L258-L261" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L318-L321" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@property
 def y_min(self) -&gt; float:
@@ -2019,7 +2544,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L606-L641" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L683-L722" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def resample(
     self,
@@ -2052,6 +2577,10 @@ def y_min(self) -&gt; float:
         Resampled
     &#34;&#34;&#34;
     if backend == &#34;opencv&#34;:
+        if self.resolution[0] != self.resolution[1]:
+            warnings.warn(
+                &#34;non square pixel resolution, use rasterio instead&#34;, UserWarning
+            )
         return self.__cv_resample(resolution, method)
     elif backend == &#34;python&#34;:
         return self.__py_resample(resolution)
@@ -2097,7 +2626,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L570-L604" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L647-L681" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def resize(
     self, height: int, width: int, method: str = &#34;bilinear&#34;, backend: str = &#34;opencv&#34;
@@ -2158,7 +2687,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L370-L386" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L447-L463" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rowcol2xy(
     self, row: int, col: int, offset: str = &#34;center&#34;
@@ -2192,7 +2721,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L553-L568" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L630-L645" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save(self, file_name: str, compress: bool = False) -&gt; None:
     &#34;&#34;&#34;Save raster as geotiff
@@ -2210,6 +2739,75 @@ def y_min(self) -&gt; float:
         nodata=self.no_data,
         compress=compress,
     )</code></pre>
+</details>
+</dd>
+<dt id="geosardine.raster.Raster.split2tiles"><code class="name flex">
+<span>def <span class="ident">split2tiles</span></span>(<span>self, tile_size: Union[int, Tuple[int, int], List[int]]) ‑> Generator[Tuple[int, int, <a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a>], NoneType, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Split raster into smaller tiles, excessive will be padded and have no data value</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>tile_size</code></strong> :&ensp;<code>int, list</code> of <code>int, tuple</code> of <code>int</code></dt>
+<dd>dimension of tiles</dd>
+</dl>
+<h2 id="yields">Yields</h2>
+<dl>
+<dt><code>int, int, <a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></code></dt>
+<dd>row, column, tiled raster</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L854-L900" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def split2tiles(
+    self, tile_size: Union[int, Tuple[int, int], List[int]]
+) -&gt; Generator[Tuple[int, int, &#34;Raster&#34;], None, None]:
+    &#34;&#34;&#34;
+    Split raster into smaller tiles, excessive will be padded and have no data value
+
+    Parameters
+    -------
+    tile_size: int, list of int, tuple of int
+        dimension of tiles
+
+    Yields
+    -------
+    int, int, Raster
+        row, column, tiled raster
+    &#34;&#34;&#34;
+
+    tile_width: int = 0
+    tile_height: int = 0
+    if isinstance(tile_size, int):
+        tile_height = tile_size
+        tile_width = tile_size
+    elif isinstance(tile_size, tuple) or isinstance(tile_size, list):
+        if isinstance(tile_size[0], int) or isinstance(tile_size[1], int):
+            tile_height, tile_width = tile_size
+
+    new_height = self.shape[0]
+    if self.shape[0] % tile_height != 0:
+        new_height += tile_height - (new_height % tile_height)
+
+    new_width = self.shape[1]
+    if self.shape[1] % tile_width != 0:
+        new_width += tile_width - (new_width % tile_width)
+
+    padded_array = np.zeros((new_height, new_height, self.layers), dtype=self.dtype)
+    padded_array[:] = self.no_data
+    padded_array[: self.shape[0], : self.shape[1]] = self.array
+
+    for r in range(0, new_height, tile_height):
+        for c in range(0, new_width, tile_width):
+            yield r, c, Raster(
+                padded_array[r : r + tile_height, c : c + tile_width],
+                self.resolution,
+                *self.rowcol2xy(r, c, offset=&#34;ul&#34;),
+                epsg=self.epsg,
+                no_data=self.no_data,
+            )</code></pre>
 </details>
 </dd>
 <dt id="geosardine.raster.Raster.xy2rowcol"><code class="name flex">
@@ -2232,7 +2830,7 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L388-L402" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L465-L479" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def xy2rowcol(self, x: float, y: float) -&gt; Tuple[int, int]:
     &#34;&#34;&#34;Convert real world coordinate to image coordinate (row, col)
@@ -2247,12 +2845,12 @@ def y_min(self) -&gt; float:
     Tuple[int, int]
         row, column
     &#34;&#34;&#34;
-    _row, _col = xy2rowcol((x, y), self.transform)
+    _row, _col = xy2rowcol((x, y), self.transform, offset=offset)
     return int(_row), int(_col)</code></pre>
 </details>
 </dd>
 <dt id="geosardine.raster.Raster.xy_value"><code class="name flex">
-<span>def <span class="ident">xy_value</span></span>(<span>self, x: float, y: float) ‑> Union[float, int, numpy.ndarray]</span>
+<span>def <span class="ident">xy_value</span></span>(<span>self, x: float, y: float, offset='center') ‑> Union[float, int, numpy.ndarray]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Obtain pixel value by geodetic or projected coordinate</p>
@@ -2271,9 +2869,11 @@ def y_min(self) -&gt; float:
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/sahitono/geosardine/blob/85d80b988c305f30b23ad33f80b3fa982c884f00/geosardine/raster.py#L342-L368" class="git-link">Browse git</a>
+<a href="https://github.com/sahitono/geosardine/blob/05ccd26da4a73df477c0b468d97c7223bce24782/geosardine\raster.py#L417-L445" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def xy_value(self, x: float, y: float) -&gt; Union[float, int, np.ndarray]:
+<pre><code class="python">def xy_value(
+    self, x: float, y: float, offset=&#34;center&#34;
+) -&gt; Union[float, int, np.ndarray]:
     &#34;&#34;&#34;Obtain pixel value by geodetic or projected coordinate
 
     Parameters
@@ -2289,7 +2889,7 @@ def y_min(self) -&gt; float:
         pixel value
     &#34;&#34;&#34;
     try:
-        row, col = self.xy2rowcol(x, y)
+        row, col = self.xy2rowcol(x, y, offset=offset)
         if row &lt; 0 or col &lt; 0:
             raise IndexError
         return self.array[row, col]
@@ -2367,23 +2967,32 @@ setTimeout(() => input.focus(), 100);
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="geosardine.raster.Layer" href="#geosardine.raster.Layer">Layer</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geosardine.raster.Pixel" href="#geosardine.raster.Pixel">Pixel</a></code></h4>
+</li>
+<li>
 <h4><code><a title="geosardine.raster.Raster" href="#geosardine.raster.Raster">Raster</a></code></h4>
 <ul class="two-column">
 <li><code><a title="geosardine.raster.Raster.array" href="#geosardine.raster.Raster.array">array</a></code></li>
 <li><code><a title="geosardine.raster.Raster.bottom" href="#geosardine.raster.Raster.bottom">bottom</a></code></li>
 <li><code><a title="geosardine.raster.Raster.cols" href="#geosardine.raster.Raster.cols">cols</a></code></li>
+<li><code><a title="geosardine.raster.Raster.coordinate_array" href="#geosardine.raster.Raster.coordinate_array">coordinate_array</a></code></li>
 <li><code><a title="geosardine.raster.Raster.from_binary" href="#geosardine.raster.Raster.from_binary">from_binary</a></code></li>
 <li><code><a title="geosardine.raster.Raster.from_rasterfile" href="#geosardine.raster.Raster.from_rasterfile">from_rasterfile</a></code></li>
 <li><code><a title="geosardine.raster.Raster.is_geographic" href="#geosardine.raster.Raster.is_geographic">is_geographic</a></code></li>
 <li><code><a title="geosardine.raster.Raster.is_projected" href="#geosardine.raster.Raster.is_projected">is_projected</a></code></li>
 <li><code><a title="geosardine.raster.Raster.layers" href="#geosardine.raster.Raster.layers">layers</a></code></li>
 <li><code><a title="geosardine.raster.Raster.left" href="#geosardine.raster.Raster.left">left</a></code></li>
+<li><code><a title="geosardine.raster.Raster.parse_slicer" href="#geosardine.raster.Raster.parse_slicer">parse_slicer</a></code></li>
 <li><code><a title="geosardine.raster.Raster.resample" href="#geosardine.raster.Raster.resample">resample</a></code></li>
 <li><code><a title="geosardine.raster.Raster.resize" href="#geosardine.raster.Raster.resize">resize</a></code></li>
 <li><code><a title="geosardine.raster.Raster.right" href="#geosardine.raster.Raster.right">right</a></code></li>
 <li><code><a title="geosardine.raster.Raster.rowcol2xy" href="#geosardine.raster.Raster.rowcol2xy">rowcol2xy</a></code></li>
 <li><code><a title="geosardine.raster.Raster.rows" href="#geosardine.raster.Raster.rows">rows</a></code></li>
 <li><code><a title="geosardine.raster.Raster.save" href="#geosardine.raster.Raster.save">save</a></code></li>
+<li><code><a title="geosardine.raster.Raster.split2tiles" href="#geosardine.raster.Raster.split2tiles">split2tiles</a></code></li>
 <li><code><a title="geosardine.raster.Raster.top" href="#geosardine.raster.Raster.top">top</a></code></li>
 <li><code><a title="geosardine.raster.Raster.x_extent" href="#geosardine.raster.Raster.x_extent">x_extent</a></code></li>
 <li><code><a title="geosardine.raster.Raster.x_max" href="#geosardine.raster.Raster.x_max">x_max</a></code></li>

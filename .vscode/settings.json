@@ -2,7 +2,7 @@
     "cSpell.ignoreWords": [
         "ndarray"
     ],
-    "python.pythonPath": ".venv/bin/python",
+    "python.pythonPath": "d:\\Documents\\00SelfProject\\geosardine\\.venv\\Scripts\\python.exe",
     "python.formatting.provider": "black",
     "python.linting.pylintEnabled": false,
     "python.linting.mypyEnabled": true,
