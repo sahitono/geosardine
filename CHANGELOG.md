@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0-aplha1] - 2021-03-19
+
+### Added
+- Added polygonize in raster
+
+### Fixed
+- Fixed unused argument (offset) in Raster.xy2rowcol
+### Changed
+- moved pip to development dependency
+- simplified numba xy2rowcol without creating new variable
+- updated environment.yml
+
+### Removed
+- removed unused module in utility
 
 ## [0.11.0-alpha0] - 2021-02-24
 
