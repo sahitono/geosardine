@@ -912,6 +912,46 @@ class Raster(np.ndarray):
             epsg=self.epsg,
         )
 
+    def clip2bbox(
+        self, x_min: float, y_min: float, x_max: float, y_max: float
+    ) -> "Raster":
+        """Clipping into bounding boxes
+
+        Returns
+        -------
+        Raster
+            Clipped raster
+        """
+        if x_min < self.x_min:
+            raise ValueError(
+                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
+                but input is {x_min},{y_min},{x_max},{y_max}"""
+            )
+
+        if y_min < self.y_min:
+            raise ValueError(
+                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
+                but input is {x_min},{y_min},{x_max},{y_max}"""
+            )
+
+        if x_max > self.x_max:
+            raise ValueError(
+                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
+                but input is {x_min},{y_min},{x_max},{y_max}"""
+            )
+
+        if y_max > self.y_max:
+            raise ValueError(
+                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
+                but input is {x_min},{y_min},{x_max},{y_max}"""
+            )
+
+        row_min, col_min = self.xy2rowcol(x_min, y_max)
+        row_max, col_max = self.xy2rowcol(x_max, y_min)
+
+        clipped = self.array[row_min:row_max, col_min:col_max]
+        return Raster(clipped, self.resolution, x_min, y_max)
+
     def split2tiles(
         self, tile_size: Union[int, Tuple[int, int], List[int]]
     ) -> Generator[Tuple[int, int, "Raster"], None, None]:
