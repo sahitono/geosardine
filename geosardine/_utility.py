@@ -1,7 +1,7 @@
 import math
 from functools import singledispatch
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numba
 import numpy as np

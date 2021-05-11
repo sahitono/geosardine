@@ -1,3 +1,4 @@
+import itertools
 import warnings
 from operator import (
     add,
@@ -13,18 +14,77 @@ from operator import (
     sub,
     truediv,
 )
-from typing import Any, Callable, Generator, Iterable, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import cv2
 import numpy as np
 import rasterio
 from affine import Affine
+from rasterio import features
 from rasterio.crs import CRS
 from rasterio.plot import reshape_as_image
+from shapely.geometry import mapping, shape
+from shapely.ops import unary_union
 
 from geosardine._geosardine import rowcol2xy, xy2rowcol
 from geosardine._raster_numba import __nb_raster_calc__, nb_raster_ops
 from geosardine._utility import save_raster
+
+
+def polygonize(
+    array: np.ndarray,
+    transform: Affine,
+    mask: Optional[np.ndarray] = None,
+    groupby_func: Optional[Callable] = None,
+) -> List[Dict[str, Any]]:
+    """Polygonize raster
+
+    Parameters
+    ----------
+    array : np.ndarray
+        raster as numpy array
+    transform : Affine
+        affine trasformation parameter
+    mask : Optional[np.ndarray], optional
+        filter used pixel area, by default None
+    groupby_func : Optional[Callable], optional
+        dissolve by function, by default None
+
+    Returns
+    -------
+    List[Dict[str, Any]]
+        vector as geojson
+    """
+    feats: Generator[Dict[str, Any], None, None] = (
+        {"properties": {"raster_val": value}, "geometry": shape}
+        for shape, value in features.shapes(array, mask=mask, transform=transform)
+    )
+    if groupby_func is not None:
+        union_features: List[Dict[str, Any]] = []
+        for _, group in itertools.groupby(
+            feats, key=lambda x: x["properties"]["raster_val"]
+        ):
+            properties, geom = zip(
+                *[
+                    (feature["properties"], shape(feature["geometry"]))
+                    for feature in group
+                ]
+            )
+            union_features.append(
+                {"geometry": mapping(unary_union(geom)), "properties": properties[0]}
+            )
+        return union_features
+    return list(feats)
 
 
 class Raster(np.ndarray):
@@ -432,7 +492,7 @@ class Raster(np.ndarray):
             pixel value
         """
         try:
-            row, col = self.xy2rowcol(x, y, offset=offset)
+            row, col = self.xy2rowcol(x, y)
             if row < 0 or col < 0:
                 raise IndexError
             return self.array[row, col]
@@ -475,7 +535,7 @@ class Raster(np.ndarray):
         Tuple[int, int]
             row, column
         """
-        _row, _col = xy2rowcol((x, y), self.transform, offset=offset)
+        _row, _col = xy2rowcol((x, y), self.transform)
         return int(_row), int(_col)
 
     def __raster_calc_by_pixel__(
@@ -766,6 +826,7 @@ class Raster(np.ndarray):
         Raster
             Resampled
         """
+        warnings.warn("this function will be removed in v1.0", DeprecationWarning)
 
         if isinstance(resolution, (float, int)):
             resampled_x_resolution = float(resolution)
@@ -850,6 +911,46 @@ class Raster(np.ndarray):
             self.y_max,
             epsg=self.epsg,
         )
+
+    def clip2bbox(
+        self, x_min: float, y_min: float, x_max: float, y_max: float
+    ) -> "Raster":
+        """Clipping into bounding boxes
+
+        Returns
+        -------
+        Raster
+            Clipped raster
+        """
+        if x_min < self.x_min:
+            raise ValueError(
+                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
+                but input is {x_min},{y_min},{x_max},{y_max}"""
+            )
+
+        if y_min < self.y_min:
+            raise ValueError(
+                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
+                but input is {x_min},{y_min},{x_max},{y_max}"""
+            )
+
+        if x_max > self.x_max:
+            raise ValueError(
+                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
+                but input is {x_min},{y_min},{x_max},{y_max}"""
+            )
+
+        if y_max > self.y_max:
+            raise ValueError(
+                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
+                but input is {x_min},{y_min},{x_max},{y_max}"""
+            )
+
+        row_min, col_min = self.xy2rowcol(x_min, y_max)
+        row_max, col_max = self.xy2rowcol(x_max, y_min)
+
+        clipped = self.array[row_min:row_max, col_min:col_max]
+        return Raster(clipped, self.resolution, x_min, y_max)
 
     def split2tiles(
         self, tile_size: Union[int, Tuple[int, int], List[int]]

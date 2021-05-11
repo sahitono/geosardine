@@ -23,9 +23,17 @@ def __nb_xy2rowcol(
         row, column
     """
 
-    x, y = xy
-    a, b, c, d, e, f, _, _, _ = inverse_transform
-    return x * d + y * e + f, x * a + y * b + c
+    # x, y = xy
+    # a, b, c, d, e, f, _, _, _ = inverse_transform
+    # return x * d + y * e + f, x * a + y * b + c
+    return (
+        xy[0] * inverse_transform[3]
+        + xy[1] * inverse_transform[4]
+        + inverse_transform[5],
+        xy[0] * inverse_transform[0]
+        + xy[1] * inverse_transform[1]
+        + inverse_transform[2],
+    )
 
 
 @nb.njit("UniTuple(f8,2)(UniTuple(f8,2),UniTuple(f8,9), unicode_type)")
