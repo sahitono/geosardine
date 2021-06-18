@@ -130,6 +130,11 @@ raster_3 = raster - 2
 raster_3 = raster * 2
 raster_3 = raster / 2
 
+### plot it using raster.array
+import matplotlib.pyplot as plt
+plt.imshow(raster_3)
+plt.show()
+
 ```
 
 

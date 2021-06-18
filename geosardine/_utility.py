@@ -7,6 +7,7 @@ import numba
 import numpy as np
 import rasterio
 from affine import Affine
+from osgeo import osr
 from rasterio.crs import CRS
 
 
@@ -18,6 +19,18 @@ def calc_affine(coordinate_array: np.ndarray) -> Affine:
     y_max -= y_res / 2
     affine = Affine.translation(*coordinate_array[0, 0]) * Affine.scale(x_res, y_res)
     return affine
+
+
+def get_ellipsoid_par(epsg: int) -> Tuple[float, float, float]:
+    crs = CRS.from_epsg(epsg)
+    semi_major = float(
+        osr.SpatialReference(wkt=crs.to_wkt()).GetAttrValue("SPHEROID", 1)
+    )
+    inverse_flattening = float(
+        osr.SpatialReference(wkt=crs.to_wkt()).GetAttrValue("SPHEROID", 2)
+    )
+    semi_minor: float = (1 - (1 / inverse_flattening)) * semi_major
+    return semi_major, semi_minor, inverse_flattening
 
 
 def save_raster(
@@ -83,10 +96,52 @@ def save_raster(
     print(f"{file_name} saved")
 
 
-@singledispatch
 def harvesine_distance(
     long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
     long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
+    epsg: int = 4326,
+) -> Optional[float]:
+
+    """Calculate distance in ellipsoid by harvesine method
+    faster, less accurate
+
+    Parameters
+    ----------
+    long_lat1 : tuple, list
+        first point coordinate in longitude, latitude
+    long_lat2 : tuple, list
+        second point coordinate in longitude, latitude
+    epsg : int, optional
+        epsg code of the spatial reference system, by default 4326
+
+    Returns
+    -------
+    Optional[float]
+        distance, if None then input is not np.ndarray, tuple or list
+
+    Notes
+    -------
+    https://rafatieppo.github.io/post/2018_07_27_idw2pyr/
+    """
+
+    semi_major, semi_minor, i_flattening = get_ellipsoid_par(epsg)
+
+    return _harvesine_distance_dispatch(
+        long_lat1,
+        long_lat2,
+        semi_major=semi_major,
+        semi_minor=semi_minor,
+        i_flattening=i_flattening,
+    )
+
+
+@singledispatch
+def _harvesine_distance_dispatch(
+    long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
+    long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
+    semi_major: float,
+    semi_minor: float,
+    i_flattening: float,
 ) -> Optional[float]:
     """
     Calculate distance in ellipsoid by harvesine method
@@ -98,11 +153,17 @@ def harvesine_distance(
         first point coordinate in longitude, latitude
     long_lat2 : tuple, list, numpy array
         second point coordinate in longitude, latitude
+    semi_major : float
+        ellipsoid's semi major axes
+    semi_minor : float
+        ellipsoid's semi minor axes
+    i_flattening : float
+        ellipsoid's inverse flattening
 
     Returns
     -------
-    float
-        distance
+    Optional[float]
+        distance, if None then input is not np.ndarray, tuple or list
 
     Notes
     -------
@@ -113,19 +174,18 @@ def harvesine_distance(
     return None
 
 
-@harvesine_distance.register(np.ndarray)
+@_harvesine_distance_dispatch.register(np.ndarray)
 @numba.njit()
-def _harvesine_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
-    radians = math.pi / 180
-    long1, lat1 = long_lat1
-    long2, lat2 = long_lat2
+def _harvesine_distance(
+    long_lat1: np.ndarray,
+    long_lat2: np.ndarray,
+    semi_major: float = 6378137.0,
+    semi_minor: float = 6356752.314245179,
+    i_flattening=298.257223563,
+) -> float:
+    long1, lat1 = np.radians(long_lat1)
+    long2, lat2 = np.radians(long_lat2)
 
-    long1 *= radians
-    long2 *= radians
-    lat1 *= radians
-    lat2 *= radians
-
-    earth_radius_equator = 6378137.0  # earth average radius at equador (km)
     long_diff = long2 - long1
     lat_diff = lat2 - lat1
     a = (
@@ -133,26 +193,89 @@ def _harvesine_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
         + math.cos(lat1) * math.cos(lat2) * math.sin(long_diff / 2) ** 2
     )
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    distance = earth_radius_equator * c
-    return np.abs(distance)
+    return np.abs(semi_major * c)
 
 
-@harvesine_distance.register(list)
-def __harvesine_distance(long_lat1: List[float], long_lat2: List[float]):
-    return _harvesine_distance(np.array(long_lat1), np.array(long_lat2))
-
-
-@harvesine_distance.register(tuple)
+@_harvesine_distance_dispatch.register(list)
 def __harvesine_distance(
-    long_lat1: Tuple[float, float], long_lat2: Tuple[float, float]
+    long_lat1: List[float],
+    long_lat2: List[float],
+    semi_major: float,
+    semi_minor: float,
+    i_flattening: float,
 ):
-    return _harvesine_distance(np.array(long_lat1), np.array(long_lat2))
+    return _harvesine_distance(
+        np.array(long_lat1),
+        np.array(long_lat2),
+        semi_major,
+        semi_minor,
+        i_flattening,
+    )
 
 
-@singledispatch
+@_harvesine_distance_dispatch.register(tuple)
+def __harvesine_distance(
+    long_lat1: Tuple[float, float],
+    long_lat2: Tuple[float, float],
+    semi_major: float,
+    semi_minor: float,
+    i_flattening: float,
+):
+    return _harvesine_distance(
+        np.array(long_lat1),
+        np.array(long_lat2),
+        semi_major,
+        semi_minor,
+        i_flattening,
+    )
+
+
 def vincenty_distance(
     long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
     long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
+    epsg: int = 4326,
+) -> float:
+    """Calculate distance in ellipsoid by vincenty method
+    slower, more accurate
+
+    Parameters
+    ----------
+    long_lat1 : tuple, list
+        first point coordinate in longitude, latitude
+    long_lat2 : tuple, list
+        second point coordinate in longitude, latitude
+    epsg : int, optional
+        epsg code of the spatial reference system, by default 4326
+
+    Returns
+    -------
+    float
+        distance
+
+    Notes
+    -------
+    https://www.johndcook.com/blog/2018/11/24/spheroid-distance/
+    """
+
+    semi_major, semi_minor, i_flattening = get_ellipsoid_par(epsg)
+
+    return _vincenty_distance_dispatch(
+        long_lat1,
+        long_lat2,
+        semi_major=semi_major,
+        semi_minor=semi_minor,
+        i_flattening=i_flattening,
+    )
+
+
+@singledispatch
+def _vincenty_distance_dispatch(
+    long_lat1: Union[np.ndarray, Tuple[float, float], List[float]],
+    long_lat2: Union[np.ndarray, Tuple[float, float], List[float]],
+    epsg: int,
+    semi_major: float,
+    semi_minor: float,
+    i_flattening: float,
 ) -> Optional[float]:
     """
     Calculate distance in ellipsoid by vincenty method
@@ -164,6 +287,12 @@ def vincenty_distance(
         first point coordinate in longitude, latitude
     long_lat2 : tuple, list
         second point coordinate in longitude, latitude
+    semi_major : float
+        ellipsoid's semi major axes
+    semi_minor : float
+        ellipsoid's semi minor axes
+    i_flattening : float
+        ellipsoid's inverse flattening
 
     Returns
     -------
@@ -178,23 +307,22 @@ def vincenty_distance(
     return None
 
 
-@vincenty_distance.register(np.ndarray)
+@_vincenty_distance_dispatch.register(np.ndarray)
 @numba.njit()
-def _vincenty_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
+def _vincenty_distance(
+    long_lat1: np.ndarray,
+    long_lat2: np.ndarray,
+    semi_major: float = 6378137.0,
+    semi_minor: float = 6356752.314245179,
+    i_flattening=298.257223563,
+) -> float:
     # WGS 1984
-    earth_radius_equator = 6378137.0  # equatorial radius in meters
-    flattening = 1 / 298.257223563
-    earth_radius_poles = (1 - flattening) * earth_radius_equator
+    flattening = 1 / i_flattening
     tolerance = 1e-11  # to stop iteration
 
     radians = math.pi / 180
-    long1, lat1 = long_lat1
-    long2, lat2 = long_lat2
-
-    long1 *= radians
-    long2 *= radians
-    lat1 *= radians
-    lat2 *= radians
+    long1, lat1 = np.radians(long_lat1)
+    long2, lat2 = np.radians(long_lat2)
 
     distance = 0.0
 
@@ -237,10 +365,7 @@ def _vincenty_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
             else:
                 lambda_old = lambda_new
 
-        u2 = cos_sq_alpha * (
-            (earth_radius_equator ** 2 - earth_radius_poles ** 2)
-            / earth_radius_poles ** 2
-        )
+        u2 = cos_sq_alpha * ((semi_major ** 2 - semi_minor ** 2) / semi_minor ** 2)
         A = 1 + (u2 / 16384) * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)))
         B = (u2 / 1024) * (256 + u2 * (-128 + u2 * (74 - 47 * u2)))
         t = cos_2sigma_m + 0.25 * B * (cos_sigma * (-1 + 2 * cos_2sigma_m ** 2))
@@ -251,19 +376,23 @@ def _vincenty_distance(long_lat1: np.ndarray, long_lat2: np.ndarray) -> float:
             * (-3 + 4 * cos_2sigma_m ** 2)
         )
         delta_sigma = B * sin_sigma * t
-        distance = earth_radius_poles * A * (sigma - delta_sigma)
+        distance = semi_minor * A * (sigma - delta_sigma)
 
     return np.abs(distance)
 
 
-@vincenty_distance.register(list)
-def __vincenty_distance(long_lat1: List[float], long_lat2: List[float]):
-    return _vincenty_distance(np.array(long_lat1), np.array(long_lat2))
+@_vincenty_distance_dispatch.register(list)
+def __vincenty_distance(
+    long_lat1: List[float], long_lat2: List[float], *args, **kwargs
+):
+    return _vincenty_distance(np.array(long_lat1), np.array(long_lat2), *args, **kwargs)
 
 
-@vincenty_distance.register(tuple)
-def __vincenty_distance(long_lat1: Tuple[float, float], long_lat2: Tuple[float, float]):
-    return _vincenty_distance(np.array(long_lat1), np.array(long_lat2))
+@_vincenty_distance_dispatch.register(tuple)
+def __vincenty_distance(
+    long_lat1: Tuple[float, float], long_lat2: Tuple[float, float], *args, **kwargs
+):
+    return _vincenty_distance(np.array(long_lat1), np.array(long_lat2), *args, **kwargs)
 
 
 @numba.njit()
