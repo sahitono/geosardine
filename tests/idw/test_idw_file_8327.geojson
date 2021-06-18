@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "test_idw_file_8327",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::8327" } },
+"features": [
+{ "type": "Feature", "properties": { "week1": 132.0 }, "geometry": { "type": "Point", "coordinates": [ -12640945.517973877489567, 7544888.72555083874613 ] } },
+{ "type": "Feature", "properties": { "week1": 127.0 }, "geometry": { "type": "Point", "coordinates": [ -12657914.629812294617295, 7585525.831693620420992 ] } },
+{ "type": "Feature", "properties": { "week1": 37.0 }, "geometry": { "type": "Point", "coordinates": [ -12610826.411705931648612, 7554815.991225138306618 ] } },
+{ "type": "Feature", "properties": { "week1": 90.0 }, "geometry": { "type": "Point", "coordinates": [ -12662277.310977136716247, 7525923.692236887291074 ] } },
+{ "type": "Feature", "properties": { "week1": 182.0 }, "geometry": { "type": "Point", "coordinates": [ -12641908.127680582925677, 7551465.73191989492625 ] } }
+]
+}

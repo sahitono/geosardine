@@ -9,7 +9,7 @@ import numba
 import numpy as np
 from rasterio.crs import CRS
 
-from .._utility import calc_affine, calc_distance, calc_extent
+from .._utility import calc_affine, calc_distance, calc_extent, get_ellipsoid_par
 from ..raster import Raster
 from ._utility import InterpolationResult
 
@@ -22,6 +22,9 @@ def _idw(
     distance_function: Callable,
     power: Union[float, int] = 2,
     distance_limit: float = 0.0,
+    semi_major: float = 6378137.0,
+    semi_minor: float = 6356752.314245179,
+    i_flattening=298.257223563,
 ) -> np.ndarray:
     interpolated = np.zeros(unknown_coordinates.shape[0])
     for i in numba.prange(interpolated.shape[0]):
@@ -140,6 +143,7 @@ def _idw_array(
             raise ValueError(f"y_min {y_min} must be smaller than x_max {y_max}")
 
     crs = CRS.from_epsg(epsg)
+    semi_major, semi_minor, i_flattening = get_ellipsoid_par(epsg)
 
     distance_calculation = longlat_distance
     if crs.is_projected:
@@ -167,19 +171,14 @@ def _idw_array(
         distance_function=calc_distance[distance_calculation],
         power=power,
         distance_limit=distance_limit,
+        semi_major=semi_major,
+        semi_minor=semi_minor,
+        i_flattening=i_flattening,
     ).reshape(rows, columns)
 
     return Raster(
         interpolated_value, transform=calc_affine(interpolated_coordinate), epsg=epsg
     )
-
-    # return InterpolationResult(
-    #     interpolated_value,
-    #     interpolated_coordinate,
-    #     crs,
-    #     (x_min, y_min, x_max, y_max),
-    #     source=source,
-    # )
 
 
 def idw_single(
@@ -238,6 +237,8 @@ def idw_single(
     if len(point) > 2:
         raise ValueError("only for single point, input can't be more than 2 items")
     crs = CRS.from_epsg(epsg)
+    semi_major, semi_minor, i_flattening = get_ellipsoid_par(epsg)
+
     distance_calculation = longlat_distance
     if crs.is_projected:
         distance_calculation = "projected"
@@ -249,6 +250,9 @@ def idw_single(
         calc_distance[distance_calculation],
         power,
         distance_limit,
+        semi_major=semi_major,
+        semi_minor=semi_minor,
+        i_flattening=i_flattening,
     )
     return interpolated[0]
 

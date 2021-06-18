@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2021-06-18
+
+### Changed
+- support any epsg code for calculating distance by using each datum semi major and semi minor axes
+
+## [0.12.0-aplha] - 2021-05-19
+
+### Added
+- clip2bbox
+
 ## [0.11.0-aplha1] - 2021-03-19
 
 ### Added
@@ -161,7 +171,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support multiple layer in raster calculation
 
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.11.0-alpha0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/sahitono/geosardine/compare/v0.12.0-alpha0...v0.13.0
+[0.12.0-alpha0]: https://github.com/sahitono/geosardine/compare/v0.11.0-alpha0...v0.12.0-alpha0
 [0.11.0-alpha0]: https://github.com/sahitono/geosardine/compare/v0.10.2...v0.11.0-alpha0
 [0.10.2]: https://github.com/sahitono/geosardine/compare/v0.9.5...v0.10.2
 [0.9.5]: https://github.com/sahitono/geosardine/compare/v0.9.4...v0.9.5
