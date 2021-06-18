@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [version] - 2021-06-18
+## [0.13.0] - 2021-06-18
 
 ### Changed
 - support any epsg code for calculating distance by using each datum semi major and semi minor axes
