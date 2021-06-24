@@ -1,5 +1,5 @@
 {% set name = "geosardine" %}
-{% set version = "0.13.0" %}
+{% set version = "0.13.1" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: d43b553a733293ffbc561e6acda33a637209ec45470e237b80b393b4b5043687
+  sha256: a3737c9dad7d52b41f6cebb18d6c085c5a0ad14a9dc2c23f977c42be305db1b5
 
 build:
   noarch: python
@@ -18,7 +18,7 @@ build:
 
 requirements:
   host:
-    - python >=3.6,<4.0
+    - python >=3.6,<3.10
     - pip
     - pytest-runner
 #    - poetry
@@ -27,10 +27,10 @@ requirements:
     - affine >=2.3.0,<3.0.0
     - click >=7.1.2,<8.0.0
     - fiona >=1.8.13,<2.0.0
-    - gdal >=3.0.4,<3.1.4
-    - numba >=0.51.2,<0.52.0
+    - gdal >=3.0.4
+    - numba >=0.51.2
     - numpy >=1.18,<2.0
-    - python >=3.6,<4.0
+    - python >=3.6,<3.10
     - rasterio >=1.1.4,<2.0.0
     - shapely >=1.6.4,<2.0.0
     - tqdm
