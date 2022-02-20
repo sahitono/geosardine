@@ -33,9 +33,9 @@ pyproj = ">=2.6.1"
 # pyproj = { path="../../../.pypkg/pyproj-3.1.0-cp38-cp38-win_amd64.whl" }
 
 [tool.poetry.dev-dependencies]
-# gdal = { path="../../../.pypkg/GDAL-3.3.0-cp38-cp38-win_amd64.whl" }
-# fiona = { path="../../../.pypkg/Fiona-1.8.20-cp38-cp38-win_amd64.whl" }
-# rasterio = { path="../../../.pypkg/rasterio-1.2.6-cp38-cp38-win_amd64.whl" }
+gdal = { path="../../../.pypkg/GDAL-3.3.2-cp39-cp39-win_amd64.whl", develop=true }
+fiona = { path="../../../.pypkg/Fiona-1.8.20-cp39-cp39-win_amd64.whl", develop=true }
+rasterio = { path="../../../.pypkg/rasterio-1.2.9-cp39-cp39-win_amd64.whl", develop=true }
 pip = ">=20.0.0"
 pytest = "^5.2"
 black = "^20.8b1"

@@ -170,7 +170,7 @@ class Raster(np.ndarray):
             if isinstance(resolution, float):
                 self.resolution: Tuple[float, float] = (
                     resolution,
-                    resolution,
+                    -resolution,
                 )
             elif isinstance(resolution, Iterable):
                 self.resolution = (resolution[0], resolution[1])
@@ -184,15 +184,19 @@ class Raster(np.ndarray):
             ):
                 self.resolution = (
                     (x_max - x_min) / array.shape[1],
-                    (y_max - y_min) / array.shape[0],
+                    -(y_max - y_min) / array.shape[0],
                 )
 
+            if self.resolution[0] > 0 and self.resolution[1] > 0:
+                print(self.resolution)
+                warnings.warn("both resolution are positive")
+
             self.transform: Affine = Affine.translation(x_min, y_max) * Affine.scale(
-                self.resolution[0], -self.resolution[1]
+                self.resolution[0], self.resolution[1]
             )
         elif isinstance(transform, Affine):
             self.transform = transform
-            self.resolution = (transform[0], abs(transform[4]))
+            self.resolution = (transform[0], transform[4])
         else:
             raise ValueError(
                 "Please define affine parameter or resolution and xmin ymax"
@@ -378,7 +382,11 @@ class Raster(np.ndarray):
     @property
     def y_min(self) -> float:
         """minimum y-axis coordinate"""
-        return self.__transform[5] - (self.resolution[1] * self.rows)
+        return self.__transform[5] + (self.resolution[1] * self.rows)
+
+    @property
+    def extent(self) -> Tuple[float, float, float, float]:
+        return self.x_min, self.y_min, self.x_max, self.y_max
 
     @property
     def top(self) -> float:
@@ -472,6 +480,8 @@ class Raster(np.ndarray):
         elif self.x_extent < 0 and self.y_extent > 0:
             raise ValueError("x min should be less than x max")
         elif self.x_extent > 0 and self.y_extent < 0:
+            print(self.resolution)
+            print(self.y_max, self.y_min, self.y_extent)
             raise ValueError("y min should be less than y max")
 
     def xy_value(
@@ -638,7 +648,6 @@ class Raster(np.ndarray):
             _raster = operator(self.array, raster)
         else:
             _raster = operator(self.array, raster)
-
         return Raster(_raster, self.resolution, self.x_min, self.y_max, epsg=self.epsg)
 
     def __sub__(self, raster: Union[int, float, "Raster", np.ndarray]) -> "Raster":
@@ -771,7 +780,7 @@ class Raster(np.ndarray):
             Resampled
         """
         if backend == "opencv":
-            if self.resolution[0] != self.resolution[1]:
+            if abs(self.resolution[0]) != abs(self.resolution[1]):
                 warnings.warn(
                     "non square pixel resolution, use rasterio instead", UserWarning
                 )
@@ -922,25 +931,12 @@ class Raster(np.ndarray):
         Raster
             Clipped raster
         """
-        if x_min < self.x_min:
-            raise ValueError(
-                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
-                but input is {x_min},{y_min},{x_max},{y_max}"""
-            )
-
-        if y_min < self.y_min:
-            raise ValueError(
-                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
-                but input is {x_min},{y_min},{x_max},{y_max}"""
-            )
-
-        if x_max > self.x_max:
-            raise ValueError(
-                f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
-                but input is {x_min},{y_min},{x_max},{y_max}"""
-            )
-
-        if y_max > self.y_max:
+        if (
+            x_min < self.x_min
+            or y_min < self.y_min
+            or x_max > self.x_max
+            or y_max > self.y_max
+        ):
             raise ValueError(
                 f"""Out of extent. extent is {self.x_min,self.y_min, self.x_max,self.y_max}
                 but input is {x_min},{y_min},{x_max},{y_max}"""
@@ -1002,8 +998,12 @@ class Raster(np.ndarray):
 
 
 class Layer(Raster):
+    """placeholder for future development"""
+
     pass
 
 
 class Pixel(Raster):
+    """placeholder for future development"""
+
     pass

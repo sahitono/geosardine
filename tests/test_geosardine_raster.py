@@ -6,7 +6,7 @@ def test_raster() -> None:
     raster = Raster(np.arange(32).reshape(4, 4, 2), 0.3, 120, 20)
 
     assert (raster.array == np.arange(32).reshape(4, 4, 2)).all()
-    assert raster.resolution == (0.3, 0.3)
+    assert raster.resolution == (0.3, -0.3)
     assert raster.x_max == 120 + (0.3 * 4)
     assert raster.y_min == 20 - (0.3 * 4)
     assert isinstance(raster[1:3, 1:3], np.ndarray)
@@ -33,7 +33,7 @@ def test_raster_manipulation() -> None:
     ).all()
     assert (round(resized.resolution[0], 2), round(resized.resolution[1], 2)) == (
         0.1,
-        0.1,
+        -0.1,
     )
     assert (
         resampled.array == np.ones(16 * 16 * 2, dtype=np.float32).reshape(16, 16, 2)
